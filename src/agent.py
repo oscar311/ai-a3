@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+# !/usr/bin/python3
 # ^^ note the python directive on the first line
 # COMP 9414 agent initiation file 
 # requires the host is running before the agent
@@ -8,154 +8,122 @@
 # created by Leo Hoare
 # with slight modifications by Alan Blair
 
+# modified by Oscar Downing (z5114817)
+
 import sys
 import socket
 import collections
 import random
 import time
-"""
-def bfs(grid, start, goal, tools):
+import copy
 
-    width, height = 5,5
+# keep track of tools
+tools = []
 
-    wall, clear = "*", " "
+prev_objects = []
 
-    tree, door, water = "T", "-", "~"
+# Obstacles  Tools
+# T   tree    a   axe
+# -   door    k   key
+# ~   water   o   stepping stone
+# *   wall    $   treasure    
 
-    # Obstacles  Tools
-    # T   tree    a   axe
-    # -   door    k   key
-    # ~   water   o   stepping stone
-    # *   wall    $   treasure    
+# obstacles
+wall, clear, covered = "*", " ", "O"
+tree, door, water = "T", "-", "~"
 
-    #take the first element 
-    queue = collections.deque([[start]])
-    seen = set([start])
+# tools
+key, axe, stone, treasure = "k", "a", "o", "$"
+
+# dimensions 
+width, height = 5,5
+
+# exploring 2d array
+visited = [[" ", " ", " ", " ", " "], 
+        [" ", " ", " ", " ", " "], 
+        [" ", " ", " ", " ", " "], 
+        [" ", " ", " ", " ", " "], 
+        [" ", " ", " ", " ", " "]]
+
+# previous x and y of player
+shift_x = 0
+shift_y = 0
+
+# solve view starts up the recursive solve
+# see r_solve()
+def solve_view(maze,startX,startY,goal):
     
-    while queue:
-        path = queue.popleft()
-        x, y = path[-1]
-
-        if grid[y][x] == goal:
-            return path
-        for x2, y2 in ((x+1,y), (x-1,y), (x,y+1), (x,y-1)):
-            if 0 <= x2 < width and 0 <= y2 < height and grid[x2][y2] != wall and (x2, y2) not in seen:
-                
-                if grid[x2][y2] == water and "o" in tools or grid[x2][y2] == door and "k" in tools or grid[x2][y2] == tree and "a" in tools or grid[x2][y2] == clear :
-                    queue.append(path + [(x2, y2)])
-                    seen.add((x2, y2))
-
-            if 0 <= x2 < width and 0 <= y2 < height and grid[x2][y2] == wall and (x2, y2) not in seen:
-                for i in range(0, 5):
-                    if grid[x2+i] == "*":
-                        
-                        break;
-                    elif grid[x2-i] == "*":
-                        break;
-                    elif grid[y2-i] == "*":
-                        break;
-                    elif grid[y2-i] == "*":
-                        break;
-"""
-"""
-int[][] maze = new int[width][height]; // The maze
-boolean[][] wasHere = new boolean[width][height];
-boolean[][] p = new boolean[width][height]; // The solution to the maze
-int startX, startY; // Starting X and Y values of maze
-int endX, endY;     // Ending X and Y values of maze
-"""
-
-
-
-def solve_maze(maze,startX,startY,goal,tools):
-    
-    width, height = 5,5
-
-    # Obstacles  Tools
-    # T   tree    a   axe
-    # -   door    k   key
-    # ~   water   o   stepping stone
-    # *   wall    $   treasure    
-
-    #take the first element 
-
+    # init path array
     p = [[" ", " ", " ", " ", " "], 
         [" ", " ", " ", " ", " "], 
         [" ", " ", " ", " ", " "], 
         [" ", " ", " ", " ", " "], 
         [" ", " ", " ", " ", " "]]
 
+    # init seen array 
     seen = [[False, False, False, False, False], 
             [False, False, False, False, False], 
             [False, False, False, False, False], 
             [False, False, False, False, False], 
             [False, False, False, False, False]]
 
+    # recursively solve the "maze" solving for different goals
+    return r_solve(maze,seen,p,startX,startY,goal)
 
-    t, path = r_solve(maze,seen,p,startX,startY,goal,tools)
-    return t,path
 
-
-def r_solve(maze,seen,p,x,y,goal,tools):
+# recursive function that solves the maze, given a goal
+#   - maze = given puzzle to solve
+#   - seen = the closed node 2d array
+#   - p = path
+#   - x,y = x start cord, y start cord
+#   - goal = where to end
+#   
+# returns
+#   - x, y = x end cord, y end cord
+#   - False = whether or not the maze was solvable
+#   - p = the path 
+def r_solve(maze,seen,p,x,y,goal):
     
-    wall, clear = "*", " "
-
-    tree, door, water = "T", "-", "~"
-
 
     if maze[x][y] == goal: 
-        #print("goal >>>> " + str(x) + " " + str(y) + " <<<<<") 
         p[x][y] = "g"
-        return True, p
+        return x,y, True, p
 
-    """if maze[x][y] == tree and "a" in tools:
-        p[x][y] = True
-        return True, p
-    if maze[x][y] == water and "o" in tools:
-        p[x][y] = True
-        return True, p
-    if maze[x][y] == door and "k" in tools:
-        p[x][y] = True
-        return True, p
-    """
     if maze[x][y] == wall or maze[x][y] == tree or maze[x][y] == water or maze[x][y] == door or seen[x][y]:
-        #print("obstacle >>>> " + str(x) + " " + str(y) + " <<<<<") 
-        
-        return False, p
+        return x,y, False, p
 
     seen[x][y] = True
 
-
     if x != 0:
-        t, p = r_solve(maze,seen,p,x-1,y,goal,tools) # // Recalls method one to the left
+        i,j,t, p = r_solve(maze,seen,p,x-1,y,goal) # // Recalls method one to the right
         if t :
             p[x][y] = "U"; #// Sets that path value to true;
             #print(">>>> " + str(x) + " " + str(y) + " <<<<<") 
         
-            return t, p
+            return x,y, t, p
     if x != 4:
-        t, p = r_solve(maze,seen,p,x+1,y,goal,tools) # // Recalls method one to the left
+        i,j,t, p = r_solve(maze,seen,p,x+1,y,goal) # // Recalls method one to the down
         if t :
             p[x][y] = "D"; #// Sets that path value to true;
             #print(">>>> " + str(x) + " " + str(y) + " <<<<<") 
             
-            return t, p
+            return x,y, t, p
     if y != 0:
-        t, p = r_solve(maze,seen,p,x,y-1,goal,tools) # // Recalls method one to the left
+        i,j,t, p = r_solve(maze,seen,p,x,y-1,goal) # // Recalls method one to the left
         if t :
             p[x][y] = "L"; #// Sets that path value to true;
             #print(">>>> " + str(x) + " " + str(y) + " <<<<<") 
             
-            return t, p
+            return x,y, t, p
     if y != 4:
-        t, p = r_solve(maze,seen,p,x,y+1,goal,tools) # // Recalls method one to the left
+        i,j,t, p = r_solve(maze,seen,p,x,y+1,goal) # // Recalls method one to the right
         if t :
             p[x][y] = "R"; #// Sets that path value to true;
             #print(">>>> " + str(x) + " " + str(y) + " <<<<<") 
             
-            return t, p
+            return x,y, t, p
             
-    return False, p
+    return x,y, False, p
 
 
 # declaring visible grid to agent
@@ -163,97 +131,230 @@ view = [['' for _ in range(5)] for _ in range(5)]
 
 # function to take get action from AI or user
 def get_action(view):
+    print(tools)
+    print(prev_objects)
+    # start cords
+    init_x = 2
+    init_y = 2
 
-    ## REPLACE THIS WITH AI CODE TO CHOOSE ACTION ##
+    # which direction the player is facing
+    pos = view[init_x][init_y]
 
-
-    # Obstacles  Tools
-    # T   tree    a   axe
-    # -   door    k   key
-    # ~   water   o   stepping stone
-    # *   wall    $   treasure
-
-    x = 2
-    y = 2
-
-    tools = []
-
-    pos = view[2][2]
 
     done = False
     while done != True :
 
+        # solve the given 5x5 grid giving the various tools
+        # as the goals, working out way up in the list of most 
+        # valuable or whichever is found first
+        # usually only one can be found so all other are false 
+        # so we go with the true option 
+        xp, yp, pp, path_p = solve_view(view,init_x,init_y,"$")        
+        xk, yk, pk, path_k = solve_view(view,init_x,init_y,"k")
+        xa, ya, pa, path_a = solve_view(view,init_x,init_y,"a")
+        xo, yo, po, path_o = solve_view(view,init_x,init_y,"o")
+        xd, yd, pd, path_d = solve_view(view,init_x,init_y,"-")
+        xt, yt, pt, path_t = solve_view(view,init_x,init_y,"T")
+        pw = False#xw, yw, pw, path_w = solve_view(view,init_x,init_y,"w")
+        xc, yc, pc, path_c = solve_view(view,init_x,init_y,"O")
 
 
-        pp, path_p = solve_maze(view,x,y,"$", tools)        
-        pk, path_k = solve_maze(view,x,y,"k", tools)
-        pa, path_a = solve_maze(view,x,y,"a", tools)
-        po, path_o = solve_maze(view,x,y,"o", tools)
-        pd, path_d = solve_maze(view,x,y,"-", tools)
-
-
-        """
-        m = ["U","D","L","R"]
-        p = [m[random.randint(0,3)], m[random.randint(0,3)], m[random.randint(0,3)], m[random.randint(0,3)]]
-        """
-
+        # special end move for object such as trees and doors 
         end_move = ""
 
+        # determine which are reachable
         if pp:
-
+            #view[xp][yp] = " "
             path = path_p
-        elif pk:
-            
+            shift_x = xp - init_x
+            shift_y = yp - init_y
+        elif pk and "k" not in prev_objects:
+            #view[xk][yk] = " "
+            tools.append("k")
             path = path_k
-        elif pd:
+            shift_x = xk - init_x
+            shift_y = yk - init_y
+        elif pd and "k" in prev_objects:
+            #view[xd][yd] = " "
             end_move += "U"
             path = path_d
-        elif pa:
-
+            shift_x = xd - init_x
+            shift_y = yd - init_y
+        elif pa and "a" not in prev_objects:
+            #view[xa][ya] = " "
+            tools.append("a")
             path = path_a
+            shift_x = xa - init_x
+            shift_y = ya - init_y
+        elif pt and "a" in prev_objects:
+            #view[xt][yt] = " "
+            end_move += "C"
+            path = path_t
+            shift_x = xt - init_x
+            shift_y = yt - init_y
         elif po:
+            #view[xo][yo] = " "
             path = path_o
+            shift_x = xo - init_x
+            shift_y = yo - init_y
+        elif pw and "o" in prev_objects :
+            if path_w[xw+1,yw] == "U" :
+                if path_w[xw-1][yw] != wall or path_w[xw-1][yw] != water:
+                    #view[xw][yw] = " "
+                    path = path_w
+                    prev_objects.remove("o")
+                    shift_x = xw - init_x
+                    shift_y = yw - init_y
+            elif path_w[xw-1][yw] == "D" :
+                if path_w[xw+1][yw] != wall or path_w[xw+1][yw] != water:
+                    #view[xw][yw] = " "
+                    path = path_w
+                    prev_objects.remove("o")
+                    shift_x = xw - init_x
+                    shift_y = yw - init_y
+            elif path_w[xw][yw+1] == "L": 
+                if path_w[xw][yw-1] != wall or path_w[xw][yw-1] != water:
+                    #view[xw][yw] = " "
+                    path = path_w
+                    prev_objects.remove("o")
+                    shift_x = xw - init_x
+                    shift_y = yw - init_y
+            elif path_w[xw,yw-1] == "R" :
+                if path_w[xw][yw+1] != wall or path_w[xw][yw+1] != water:
+                    #view[xw][yw] = " "
+                    path = path_w
+                    prev_objects.remove("o")
+                    shift_x = xw - init_x
+                    shift_y = yw - init_y
+        elif pc and "O" in prev_objects :
+            if path_c[xc+1,yc] == "U" :
+                if path_c[xc-1][yc] != wall or path_c[xc-1][yc] != water:
+                    #view[xw][yw] = " "
+                    path = path_c
+                    shift_x = xw - init_x
+                    shift_y = yw - init_y
+            elif path_w[xc-1][yc] == "D" :
+                if path_c[xc+1][yc] != wall or path_c[xc+1][yc] != water:
+                    #view[xw][yw] = " "
+                    path = path_c
+                    shift_x = xw - init_x
+                    shift_y = yw - init_y
+            elif path_c[xc][yc+1] == "L": 
+                if path_c[xc][yc-1] != wall or path_c[xc][yc-1] != water:
+                    #view[xw][yw] = " "
+                    path = path_c
+                    shift_x = xw - init_x
+                    shift_y = yw - init_y
+            elif path_w[xc,yc-1] == "R" :
+                if path_c[xc][yc+1] != wall or path_c[xc][yc+1] != water:
+                    #view[xw][yw] = " "
+                    path = path_c
+                    shift_x = xw - init_x
+                    shift_y = yw - init_y
+
+        # if nothing is reachable we just explore 
+        # marking off places we've visited 
+        
         else:  
 
-            i = random.randint(0,3)
 
-            path1 = [[" ", " ", " ", " ", " "], 
+
+            global visited
+
+            global shift_x
+            global shift_y
+
+            print(visited)
+
+            new_visited = [[" ", " ", " ", " ", " "], 
+            [" ", " ", " ", " ", " "], 
+            [" ", " ", " ", " ", " "], 
+            [" ", " ", " ", " ", " "], 
+            [" ", " ", " ", " ", " "]]
+
+            for x in range(0,width-1):
+                for y in range(0,height-1):
+                    if x-shift_x >= 0 and x-shift_x <= 4 and y-shift_y >= 0 and y-shift_y <= 4:
+                        new_visited[x-shift_x][y-shift_y] = visited[x][y]
+
+
+            print(new_visited)
+
+            print(view)
+
+
+            path = [[" ", " ", " ", " ", " "], 
                     [" ", " ", " ", " ", " "], 
-                    [" ", " ", "D", " ", " "], 
-                    [" ", " ", "R", "D", " "], 
-                    [" ", " ", " ", "R", "g"]]
-
-            path2 = [[" ", " ", " ", "R", "g"], 
-                    [" ", " ", "R", "U", " "], 
-                    [" ", " ", "U", " ", " "], 
+                    [" ", " ", " ", " ", " "], 
                     [" ", " ", " ", " ", " "], 
                     [" ", " ", " ", " ", " "]]
 
+            i = init_x
+            j = init_y
+            attempts = 0
+            while i != 0 and i != 4 and j != 0 and j != 4:
 
-            path3 = [["g", "L", " ", " ", " "], 
-                    [" ", "U", "L", " ", " "], 
-                    [" ", " ", "U", " ", " "], 
+                move = random.choice(["U","D","L","R"])
+
+
+                if move == "U" and new_visited[i-1][j] != wall and path[i-1][j] == clear and  view[i-1][j] != wall and view[i-1][j] != water:
+                    path[i][j] = "U"
+                    path[i-1][j] = "g"
+                    new_visited[i][j] = "*"
+                    i-=1
+                elif move == "D" and new_visited[i+1][j] != wall and path[i+1][j] == clear and view[i+1][j] != wall and view[i+1][j] != water:
+                    path[i][j] = "D"
+                    path[i+1][j] = "g"
+                    new_visited[i][j] = "*"
+                    i+=1
+                elif move == "L" and new_visited[i][j-1] != wall and path[i][j-1] == clear and view[i][j-1] != wall and view[i][j-1] != water :
+                    path[i][j] = "L"
+                    path[i][j-1] = "g"
+                    new_visited[i][j] = "*"
+                    j-=1
+                elif move =="R" and new_visited[i][j+1] != wall and path[i][j+1] == clear and view[i][j+1] != wall and view[i][j+1] != water:
+                    path[i][j] = "R"
+                    path[i][j+1] = "g"
+                    new_visited[i][j] = "*"
+                    j+=1
+
+
+
+                if attempts > 6400:
+
+                    new_visited = [[" ", " ", " ", " ", " "], 
+                    [" ", " ", " ", " ", " "], 
+                    [" ", " ", " ", " ", " "], 
                     [" ", " ", " ", " ", " "], 
                     [" ", " ", " ", " ", " "]]
 
-
-            path4 = [[" ", " ", " ", " ", " "], 
+                    path = [[" ", " ", " ", " ", " "], 
                     [" ", " ", " ", " ", " "], 
-                    [" ", " ", "D", " ", " "], 
-                    [" ", " ", "D", " ", " "], 
-                    ["g", "L", "L", " ", " "]]
-        
-            u = [path1,path2,path3,path4]
-            path = u[i]
+                    [" ", " ", " ", " ", " "], 
+                    [" ", " ", " ", " ", " "], 
+                    [" ", " ", " ", " ", " "]]
 
+                    i = init_x
+                    j = init_y
+
+                    attempts = 0
+
+
+                attempts+=1
+
+            shift_x = i - init_x
+            shift_y = j - init_y
+                
+            print(new_visited)
+
+            print(path)
+            visited = copy.copy(new_visited)
+
+            
+             
         ret = ""
-
-        print(path)
-
-        
         i,j = 2,2
-
-        while path[i][j] != "g":
+        while path[i][j] != "g" :
             if path[i][j] == "U":
 
                 if pos == "^":
@@ -310,10 +411,12 @@ def get_action(view):
 
                 pos = ">"
                 j+=1
+            
 
 
 
-        ret += end_move
+        ret += "F" + end_move
+
 
 
         break
@@ -333,7 +436,7 @@ if __name__ == "__main__":
 
     # checks for correct amount of arguments 
     if len(sys.argv) != 3:
-        print("Usage python3 "+sys.argv[0]+" -p port \n")
+        print("Usage Python3 "+sys.argv[0]+" -p port \n")
         sys.exit(1)
 
     port = int(sys.argv[2])
@@ -360,13 +463,22 @@ if __name__ == "__main__":
         data=sock.recv(100)
         if not data:
             exit()
+
+
         for ch in data:
+
+            if i == 1 and j == 2 and ch != wall and ch != water and ch != door and ch != tree and ch != clear:
+                prev_objects.append(ch)
+
             if (i==2 and j==2):
+                
                 view[i][j] = '^'
-                view[i][j+1] = chr(ch)
+                view[i][j+1] = chr(ord(ch))
                 j+=1 
             else:
-                view[i][j] = chr(ch)
+                #prev_objects.append(ch)
+
+                view[i][j] = chr(ord(ch))
             j+=1
             if j>4:
                 j=0
