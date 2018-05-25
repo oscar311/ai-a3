@@ -16,6 +16,8 @@ import collections
 import random
 import time
 import copy
+import numpy as np
+from queue import *
 
 # keep track of tools
 tools = []
@@ -48,6 +50,68 @@ visited = [[" ", " ", " ", " ", " "],
 # previous x and y of player
 shift_x = 0
 shift_y = 0
+
+search_mode = 0
+
+left_up = 2
+left_down = 3
+right_up = 0
+right_down = 1
+left = 4
+right = 5
+up = 6
+down = 7
+
+my_map = Queue(maxsize=1000)
+
+def update_map(my_map, view):
+
+
+    my_map.put(view.copy())
+
+    
+
+    """
+    global sx, sy
+    print(shift_x)
+    print(shift_y)
+
+    global start, pos
+
+    if pos == ">":
+        np.rot90(view)
+        np.rot90(view)
+        np.rot90(view)
+    elif pos == "v":
+        np.rot90(view)
+        np.rot90(view)
+
+    elif pos == "<":
+        np.rot90(view)
+
+
+
+    if shift_x == 0 and shift_y == 0 and start == 1:
+
+        for i in range(0,4):
+            for j in range(0,4):
+                my_map[sx+i+shift_x][sy+j+shift_y] = view[i][j]
+
+    else:
+        start = 2
+
+        for i in range(0,4):
+            for j in range(0,4):
+                my_map[sx+i+shift_x][sy+j+shift_y] = view[i][j]
+
+        sx+=shift_x
+        sy+=shift_y
+
+    for i in range(80) :
+        for j in range(80) :
+            print(my_map[i][j], end='')
+        print()
+    """
 
 # solve view starts up the recursive solve
 # see r_solve()
@@ -127,18 +191,24 @@ def r_solve(maze,seen,p,x,y,goal):
 
 
 # declaring visible grid to agent
-view = [['' for _ in range(5)] for _ in range(5)]
+view = [[' ' for _ in range(5)] for _ in range(5)]
 
 # function to take get action from AI or user
 def get_action(view):
     print(tools)
-    print(prev_objects)
+    #print(prev_objects)
     # start cords
     init_x = 2
     init_y = 2
 
     # which direction the player is facing
     pos = view[init_x][init_y]
+
+    # update the map
+
+    update_map(my_map, view)
+    print(my_map)
+
 
 
     done = False
@@ -257,104 +327,105 @@ def get_action(view):
         
         else:  
 
-
-
-            global visited
-
-            global shift_x
-            global shift_y
-
-            print(visited)
-
-            new_visited = [[" ", " ", " ", " ", " "], 
-            [" ", " ", " ", " ", " "], 
-            [" ", " ", " ", " ", " "], 
-            [" ", " ", " ", " ", " "], 
-            [" ", " ", " ", " ", " "]]
-
-            for x in range(0,width-1):
-                for y in range(0,height-1):
-                    if x-shift_x >= 0 and x-shift_x <= 4 and y-shift_y >= 0 and y-shift_y <= 4:
-                        new_visited[x-shift_x][y-shift_y] = visited[x][y]
-
-
-            print(new_visited)
-
-            print(view)
-
+           
 
             path = [[" ", " ", " ", " ", " "], 
-                    [" ", " ", " ", " ", " "], 
-                    [" ", " ", " ", " ", " "], 
-                    [" ", " ", " ", " ", " "], 
-                    [" ", " ", " ", " ", " "]]
+                [" ", " ", " ", " ", " "], 
+                [" ", " ", " ", " ", " "], 
+                [" ", " ", " ", " ", " "], 
+                [" ", " ", " ", " ", " "]]
 
             i = init_x
             j = init_y
+            s = 0
+
+            global search_mode
+
             attempts = 0
+
+            print(search_mode)
+
             while i != 0 and i != 4 and j != 0 and j != 4:
+                
+                if search_mode%8 == left_up and s%2==0:
+                    move = "U"
+                elif search_mode%8 == left_up and s%2==1:
+                    move = "L"
+                elif search_mode%8 == right_up and s%2==0:
+                    move = "R"
+                elif search_mode%8 == right_up and s%2==1:
+                    move = "U"
+                elif search_mode%8 == left_down and s%2==0:
+                    move = "D"
+                elif search_mode%8 == left_down and s%2==1:
+                    move = "L"
+                elif search_mode%8 == right_down and s%2==0:
+                    move = "R"
+                elif search_mode%8 == right_down and s%2==1:
+                    move = "D"
 
-                move = random.choice(["U","D","L","R"])
+                elif search_mode%8 == left:
+                    move = "L"
+                elif search_mode%8 == right:
+                    move = "R"
+                elif search_mode%8 == up:
+                    move = "U"
+                elif search_mode%8 == down:
+                    move = "D"
 
 
-                if move == "U" and new_visited[i-1][j] != wall and path[i-1][j] == clear and  view[i-1][j] != wall and view[i-1][j] != water:
+
+
+                if move == "U" and path[i-1][j] == clear and  view[i-1][j] != wall and view[i-1][j] != water:
+
                     path[i][j] = "U"
                     path[i-1][j] = "g"
-                    new_visited[i][j] = "*"
                     i-=1
-                elif move == "D" and new_visited[i+1][j] != wall and path[i+1][j] == clear and view[i+1][j] != wall and view[i+1][j] != water:
+                elif move == "D" and path[i+1][j] == clear and view[i+1][j] != wall and view[i+1][j] != water:
                     path[i][j] = "D"
                     path[i+1][j] = "g"
-                    new_visited[i][j] = "*"
                     i+=1
-                elif move == "L" and new_visited[i][j-1] != wall and path[i][j-1] == clear and view[i][j-1] != wall and view[i][j-1] != water :
+                elif move == "L" and path[i][j-1] == clear and view[i][j-1] != wall and view[i][j-1] != water :
                     path[i][j] = "L"
                     path[i][j-1] = "g"
-                    new_visited[i][j] = "*"
                     j-=1
-                elif move =="R" and new_visited[i][j+1] != wall and path[i][j+1] == clear and view[i][j+1] != wall and view[i][j+1] != water:
+                elif move =="R" and path[i][j+1] == clear and view[i][j+1] != wall and view[i][j+1] != water:
                     path[i][j] = "R"
                     path[i][j+1] = "g"
-                    new_visited[i][j] = "*"
                     j+=1
-
-
-
+                else :
+                    search_mode+=1
                 if attempts > 6400:
-
-                    new_visited = [[" ", " ", " ", " ", " "], 
-                    [" ", " ", " ", " ", " "], 
-                    [" ", " ", " ", " ", " "], 
-                    [" ", " ", " ", " ", " "], 
-                    [" ", " ", " ", " ", " "]]
-
                     path = [[" ", " ", " ", " ", " "], 
-                    [" ", " ", " ", " ", " "], 
-                    [" ", " ", " ", " ", " "], 
-                    [" ", " ", " ", " ", " "], 
-                    [" ", " ", " ", " ", " "]]
+                        [" ", " ", " ", " ", " "], 
+                        [" ", " ", " ", " ", " "], 
+                        [" ", " ", " ", " ", " "], 
+                        [" ", " ", " ", " ", " "]]
 
                     i = init_x
                     j = init_y
-
-                    attempts = 0
-
+                    s = 0
 
                 attempts+=1
+                    
+                s+=1
+            
+            global shift_x, shift_y
 
             shift_x = i - init_x
             shift_y = j - init_y
-                
-            print(new_visited)
 
-            print(path)
-            visited = copy.copy(new_visited)
+            search_mode+=1
+ 
 
-            
-             
+
         ret = ""
         i,j = 2,2
         while path[i][j] != "g" :
+
+            if view[i][j] == water:
+                break 
+
             if path[i][j] == "U":
 
                 if pos == "^":
@@ -413,9 +484,7 @@ def get_action(view):
                 j+=1
             
 
-
-
-        ret += "F" + end_move
+        ret += end_move
 
 
 
@@ -468,17 +537,17 @@ if __name__ == "__main__":
         for ch in data:
 
             if i == 1 and j == 2 and ch != wall and ch != water and ch != door and ch != tree and ch != clear:
-                prev_objects.append(ch)
+                prev_objects.append(chr(ch))
 
             if (i==2 and j==2):
                 
                 view[i][j] = '^'
-                view[i][j+1] = chr(ord(ch))
+                view[i][j+1] = chr(ch)
                 j+=1 
             else:
                 #prev_objects.append(ch)
 
-                view[i][j] = chr(ord(ch))
+                view[i][j] = chr(ch)
             j+=1
             if j>4:
                 j=0
