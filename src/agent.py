@@ -61,17 +61,23 @@ left = 4
 right = 5
 up = 6
 down = 7
+ #= Queue(maxsize=1000)
 
-my_map = Queue(maxsize=1000)
+sx = 40
+sy = 40
+
+pos = "^"
+
+start = 1
 
 def update_map(my_map, view):
 
 
-    my_map.put(view.copy())
+    #my_map.put(view.copy())
 
     
 
-    """
+    
     global sx, sy
     print(shift_x)
     print(shift_y)
@@ -111,7 +117,7 @@ def update_map(my_map, view):
         for j in range(80) :
             print(my_map[i][j], end='')
         print()
-    """
+    
 
 # solve view starts up the recursive solve
 # see r_solve()
@@ -192,6 +198,7 @@ def r_solve(maze,seen,p,x,y,goal):
 
 # declaring visible grid to agent
 view = [[' ' for _ in range(5)] for _ in range(5)]
+my_map = [['' for _ in range(80)] for _ in range(80)]
 
 # function to take get action from AI or user
 def get_action(view):
@@ -207,7 +214,6 @@ def get_action(view):
     # update the map
 
     update_map(my_map, view)
-    print(my_map)
 
 
 
