@@ -67,6 +67,8 @@ sx = 40
 sy = 40
 
 pos = "^"
+start_pos = "^"
+
 
 start = 1
 
@@ -78,37 +80,44 @@ def update_map(my_map, view):
     
 
     
-    global sx, sy
+    global sx, sy, shift_y, shift_x
     print(shift_x)
     print(shift_y)
 
-    global start, pos
+    print(view)
+    global start, start_pos
 
-    if pos == ">":
-        np.rot90(view)
-        np.rot90(view)
-        np.rot90(view)
-    elif pos == "v":
-        np.rot90(view)
-        np.rot90(view)
+    if start_pos == ">":
+        view = np.rot90(view,1)
+    elif start_pos == "v":
+        view = np.rot90(view,2)
 
-    elif pos == "<":
-        np.rot90(view)
+
+    elif start_pos == "<":
+        view = np.rot90(view,3)
+
+    print(start_pos)
+    print(view)
+
 
 
 
     if shift_x == 0 and shift_y == 0 and start == 1:
 
-        for i in range(0,4):
-            for j in range(0,4):
-                my_map[sx+i+shift_x][sy+j+shift_y] = view[i][j]
+        for i in range(5):
+            for j in range(5):
+                if my_map[sx+i+shift_x][sy+j+shift_y] == "" or my_map[sx+i+shift_x][sy+i+shift_y] == " ":
+
+                    my_map[sx+i+shift_x][sy+j+shift_y] = view[i][j]
 
     else:
         start = 2
 
-        for i in range(0,4):
-            for j in range(0,4):
-                my_map[sx+i+shift_x][sy+j+shift_y] = view[i][j]
+        for i in range(5):
+            for j in range(5):
+                if my_map[sx+i+shift_x][sy+i+shift_y] == "" or my_map[sx+i+shift_x][sy+i+shift_y] == " ":
+
+                    my_map[sx+i+shift_x][sy+j+shift_y] = view[i][j]
 
         sx+=shift_x
         sy+=shift_y
@@ -197,7 +206,7 @@ def r_solve(maze,seen,p,x,y,goal):
 
 
 # declaring visible grid to agent
-view = [[' ' for _ in range(5)] for _ in range(5)]
+view = [['' for _ in range(5)] for _ in range(5)]
 my_map = [['' for _ in range(80)] for _ in range(80)]
 
 # function to take get action from AI or user
@@ -213,7 +222,7 @@ def get_action(view):
 
     # update the map
 
-    update_map(my_map, view)
+    
 
 
 
@@ -237,6 +246,9 @@ def get_action(view):
 
         # special end move for object such as trees and doors 
         end_move = ""
+
+        global shift_x, shift_y
+
 
         # determine which are reachable
         if pp:
@@ -413,20 +425,34 @@ def get_action(view):
                     s = 0
 
                 attempts+=1
+
+
+
                     
                 s+=1
+
+                break
             
-            global shift_x, shift_y
 
             shift_x = i - init_x
             shift_y = j - init_y
 
             search_mode+=1
  
-
+        global pos, start_pos
 
         ret = ""
         i,j = 2,2
+
+        if path[i][j] == "U":
+            start_pos = "^"
+        elif path[i][j] == "D":
+            start_pos = "v"
+        elif path[i][j] == "L":
+            start_pos = "<"
+        elif path[i][j] == "R":
+            start_pos = ">"
+
         while path[i][j] != "g" :
 
             if view[i][j] == water:
@@ -496,6 +522,7 @@ def get_action(view):
 
         break
     time.sleep(.1)
+    update_map(my_map, view)
     print(ret)
     return ret
 
