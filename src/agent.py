@@ -17,7 +17,6 @@ import random
 import time
 import copy
 import numpy as np
-from queue import *
 
 # keep track of tools
 tools = []
@@ -63,8 +62,8 @@ up = 6
 down = 7
  #= Queue(maxsize=1000)
 
-sx = 40
-sy = 40
+sx = 39
+sy = 39
 
 pos = "^"
 start_pos = "^"
@@ -72,35 +71,57 @@ start_pos = "^"
 
 start = 1
 
-def update_map(my_map, view):
+prev_pos = ""
+
+
+# declaring visible grid to agent
+view = [['' for _ in range(5)] for _ in range(5)]
+#my_map = [['' for _ in range(80)] for _ in range(80)]
+
+my_map = np.array([['?' for _ in range(80)] for _ in range(80)])
+
+def update_map(view):
 
 
     #my_map.put(view.copy())
-
     
-
-    
-    global sx, sy, shift_y, shift_x
+    global my_map, sx, sy, shift_y, shift_x
     print(shift_x)
     print(shift_y)
 
-    print(view)
-    global start, start_pos
-
-    if start_pos == ">":
-        view = np.rot90(view,1)
-    elif start_pos == "v":
-        view = np.rot90(view,2)
+    sx -= shift_x
+    sy -= shift_y
 
 
-    elif start_pos == "<":
-        view = np.rot90(view,3)
+    #print_grid(prev_view)
+    global start, start_pos, prev_pos
 
-    print(start_pos)
-    print(view)
-
+    print(">>> prev pos" + prev_pos)
 
 
+    for i in prev_pos:
+        if i == "R":
+            my_map = np.rot90(my_map,1)
+        elif i == "L":
+            my_map = np.rot90(my_map,-1)
+
+
+    x = sx
+    y = sy
+
+    x -= 2
+    y -= 2
+    for i in range(5):
+        for j in range(5):
+            if i == 2 and j == 2: 
+                my_map[i + x][j + y] = ' '
+                continue
+
+            
+            my_map[i + x][j + y] = view[i][j]
+
+
+    """
 
     if shift_x == 0 and shift_y == 0 and start == 1:
 
@@ -121,12 +142,14 @@ def update_map(my_map, view):
 
         sx+=shift_x
         sy+=shift_y
-
+    """
     for i in range(80) :
         for j in range(80) :
             print(my_map[i][j], end='')
         print()
-    
+
+
+
 
 # solve view starts up the recursive solve
 # see r_solve()
@@ -205,26 +228,28 @@ def r_solve(maze,seen,p,x,y,goal):
     return x,y, False, p
 
 
-# declaring visible grid to agent
-view = [['' for _ in range(5)] for _ in range(5)]
-my_map = [['' for _ in range(80)] for _ in range(80)]
 
 # function to take get action from AI or user
 def get_action(view):
+    #print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
+    global pos, prev_pos
+    print("prev pos" + prev_pos)
+    print_grid(view)
+
+    #update_map()
+
     print(tools)
     #print(prev_objects)
     # start cords
     init_x = 2
     init_y = 2
 
+    
+
     # which direction the player is facing
     pos = view[init_x][init_y]
 
     # update the map
-
-    
-
-
 
     done = False
     while done != True :
@@ -431,7 +456,7 @@ def get_action(view):
                     
                 s+=1
 
-                break
+                
             
 
             shift_x = i - init_x
@@ -439,7 +464,7 @@ def get_action(view):
 
             search_mode+=1
  
-        global pos, start_pos
+        global start_pos
 
         ret = ""
         i,j = 2,2
@@ -498,6 +523,8 @@ def get_action(view):
                 elif pos == "v":
                     ret += "RF"
 
+                
+
                 pos = "<"
                 j-=1
 
@@ -515,14 +542,15 @@ def get_action(view):
                 pos = ">"
                 j+=1
             
-
+        #prev_view = view[:]
+        prev_pos = ret
         ret += end_move
 
 
 
         break
-    time.sleep(.1)
-    update_map(my_map, view)
+    
+    
     print(ret)
     return ret
 
@@ -586,8 +614,14 @@ if __name__ == "__main__":
                 j=0
                 i=(i+1)%5
         if j==0 and i==0:
-            print_grid(view) # COMMENT THIS OUT ON SUBMISSION
+            print("~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
+            #print_grid(view) # COMMENT THIS OUT ON SUBMISSION
+            
+            update_map(view)            
             action = get_action(view) # gets new actions
+
+            print(">>>>>>>>>>>"+action)
+
             sock.send(action.encode('utf-8'))
 
     sock.close()
