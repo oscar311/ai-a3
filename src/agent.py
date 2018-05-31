@@ -73,6 +73,7 @@ start = 1
 
 prev_pos = ""
 
+rot = 0
 
 # declaring visible grid to agent
 view = [['' for _ in range(5)] for _ in range(5)]
@@ -86,25 +87,37 @@ def update_map(view):
     #my_map.put(view.copy())
     
     global my_map, sx, sy, shift_y, shift_x
-    print(shift_x)
-    print(shift_y)
+    #print(shift_x)
+    #print(shift_y)
+    #print(sx)
+    #print(sy)
 
-    sx -= shift_x
-    sy -= shift_y
 
+    
 
     #print_grid(prev_view)
     global start, start_pos, prev_pos
 
-    print(">>> prev pos" + prev_pos)
+    #print(">>> prev pos " + prev_pos)
 
 
+    #global rot
+
+    """if rot != 0:
+        my_map = np.rot90(my_map,-rot)
+    """
+    
+
+    #rot = 0
     for i in prev_pos:
-        if i == "R":
-            my_map = np.rot90(my_map,1)
-        elif i == "L":
-            my_map = np.rot90(my_map,-1)
+        if i == "L":
+            view = np.rot90(view,1)
+            #rot+=1
+        elif i == "R":
+            view = np.rot90(view,3)
+            #rot-=1
 
+    
 
     x = sx
     y = sy
@@ -117,8 +130,8 @@ def update_map(view):
                 my_map[i + x][j + y] = ' '
                 continue
 
-            
-            my_map[i + x][j + y] = view[i][j]
+            if my_map[i + x][j + y] == "?": 
+                my_map[i + x][j + y] = view[i][j]
 
 
     """
@@ -143,6 +156,18 @@ def update_map(view):
         sx+=shift_x
         sy+=shift_y
     """
+
+    """
+    for i in prev_pos:
+        if i == "L":
+            my_map = np.rot90(my_map,-1)
+            #rot+=1
+        elif i == "R":
+            my_map = np.rot90(my_map,1)
+            #rot-=1
+    """
+
+
     for i in range(80) :
         for j in range(80) :
             print(my_map[i][j], end='')
@@ -156,18 +181,10 @@ def update_map(view):
 def solve_view(maze,startX,startY,goal):
     
     # init path array
-    p = [[" ", " ", " ", " ", " "], 
-        [" ", " ", " ", " ", " "], 
-        [" ", " ", " ", " ", " "], 
-        [" ", " ", " ", " ", " "], 
-        [" ", " ", " ", " ", " "]]
+    p = np.array([[' ' for _ in range(80)] for _ in range(80)])
+    seen = np.array([[False for _ in range(80)] for _ in range(80)])
 
-    # init seen array 
-    seen = [[False, False, False, False, False], 
-            [False, False, False, False, False], 
-            [False, False, False, False, False], 
-            [False, False, False, False, False], 
-            [False, False, False, False, False]]
+    
 
     # recursively solve the "maze" solving for different goals
     return r_solve(maze,seen,p,startX,startY,goal)
@@ -186,12 +203,12 @@ def solve_view(maze,startX,startY,goal):
 #   - p = the path 
 def r_solve(maze,seen,p,x,y,goal):
     
-
     if maze[x][y] == goal: 
+        print(str(x)+" "+str(y)+ " "+goal)
         p[x][y] = "g"
         return x,y, True, p
 
-    if maze[x][y] == wall or maze[x][y] == tree or maze[x][y] == water or maze[x][y] == door or seen[x][y]:
+    if maze[x][y] == "?" or maze[x][y] == wall or maze[x][y] == tree or maze[x][y] == water or maze[x][y] == door or seen[x][y]:
         return x,y, False, p
 
     seen[x][y] = True
@@ -203,7 +220,7 @@ def r_solve(maze,seen,p,x,y,goal):
             #print(">>>> " + str(x) + " " + str(y) + " <<<<<") 
         
             return x,y, t, p
-    if x != 4:
+    if x != 79:
         i,j,t, p = r_solve(maze,seen,p,x+1,y,goal) # // Recalls method one to the down
         if t :
             p[x][y] = "D"; #// Sets that path value to true;
@@ -217,7 +234,7 @@ def r_solve(maze,seen,p,x,y,goal):
             #print(">>>> " + str(x) + " " + str(y) + " <<<<<") 
             
             return x,y, t, p
-    if y != 4:
+    if y != 79:
         i,j,t, p = r_solve(maze,seen,p,x,y+1,goal) # // Recalls method one to the right
         if t :
             p[x][y] = "R"; #// Sets that path value to true;
@@ -233,12 +250,12 @@ def r_solve(maze,seen,p,x,y,goal):
 def get_action(view):
     #print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
     global pos, prev_pos
-    print("prev pos" + prev_pos)
-    print_grid(view)
+    #print("prev pos" + prev_pos)
+    #print_grid(view)
 
     #update_map()
 
-    print(tools)
+    #print(tools)
     #print(prev_objects)
     # start cords
     init_x = 2
@@ -259,20 +276,26 @@ def get_action(view):
         # valuable or whichever is found first
         # usually only one can be found so all other are false 
         # so we go with the true option 
-        xp, yp, pp, path_p = solve_view(view,init_x,init_y,"$")        
-        xk, yk, pk, path_k = solve_view(view,init_x,init_y,"k")
-        xa, ya, pa, path_a = solve_view(view,init_x,init_y,"a")
-        xo, yo, po, path_o = solve_view(view,init_x,init_y,"o")
-        xd, yd, pd, path_d = solve_view(view,init_x,init_y,"-")
-        xt, yt, pt, path_t = solve_view(view,init_x,init_y,"T")
-        pw = False#xw, yw, pw, path_w = solve_view(view,init_x,init_y,"w")
-        xc, yc, pc, path_c = solve_view(view,init_x,init_y,"O")
+
+        global my_map, sx, sy
+
+        xp, yp, pp, path_p = solve_view(my_map,sx,sy,"$")        
+        xk, yk, pk, path_k = solve_view(my_map,sx,sy,"k")
+        xa, ya, pa, path_a = solve_view(my_map,sx,sy,"a")
+        xo, yo, po, path_o = solve_view(my_map,sx,sy,"o")
+        xd, yd, pd, path_d = solve_view(my_map,sx,sy,"-")
+        xt, yt, pt, path_t = solve_view(my_map,sx,sy,"T")
+        pw = False#xw, yw, pw, path_w = solve_view(view,sx,sy,"w")
+        xc, yc, pc, path_c = solve_view(my_map,sx,sy,"O")
 
 
         # special end move for object such as trees and doors 
         end_move = ""
 
         global shift_x, shift_y
+
+
+        
 
 
         # determine which are reachable
@@ -370,8 +393,43 @@ def get_action(view):
         
         else:  
 
-           
 
+            print(">>>>>>>>>>>>>>>> basic")
+            path = np.array([[' ' for _ in range(80)] for _ in range(80)])
+
+
+            i = sx
+            j = sy
+            
+
+            while i != 0 and i != 79 and j != 0 and j != 79:
+
+                s = random.choice(["U","D","L","R"])
+
+                if s == "D" and path[i+1][j] == clear and my_map[i+1][j] != "?" and my_map[i+1][j] != wall and my_map[i+1][j] != water:
+                    path[i][j] = "D"
+                    path[i+1][j] = "g"
+                    i+=1
+                elif s == "U" and path[i-1][j] == clear and my_map[i-1][j] != "?" and my_map[i-1][j] != wall and my_map[i-1][j] != water:
+                    path[i][j] = "U"
+                    path[i-1][j] = "g"
+                    i-=1
+                elif s == "L" and path[i][j-1] == clear and my_map[i][j-1] != "?" and my_map[i][j-1] != wall and my_map[i][j-1] != water :
+                    path[i][j] = "L"
+                    path[i][j-1] = "g"
+                    j-=1
+                elif s == "R" and path[i][j+1] == clear and my_map[i][j+1] != "?" and my_map[i][j+1] != wall and my_map[i][j+1] != water:
+                    path[i][j] = "R"
+                    path[i][j+1] = "g"
+                    j+=1
+                else :
+                    break
+
+                
+
+            shift_x = i - sx
+            shift_y = j - sy
+            """
             path = [[" ", " ", " ", " ", " "], 
                 [" ", " ", " ", " ", " "], 
                 [" ", " ", " ", " ", " "], 
@@ -455,7 +513,7 @@ def get_action(view):
 
                     
                 s+=1
-
+            
                 
             
 
@@ -463,11 +521,17 @@ def get_action(view):
             shift_y = j - init_y
 
             search_mode+=1
- 
+            """
         global start_pos
 
         ret = ""
-        i,j = 2,2
+        i,j = sx,sy
+
+        for q in range(80) :
+            for w in range(80) :
+
+                print(path[q][w], end='')
+            print()
 
         if path[i][j] == "U":
             start_pos = "^"
@@ -480,7 +544,7 @@ def get_action(view):
 
         while path[i][j] != "g" :
 
-            if view[i][j] == water:
+            if my_map[i][j] == water:
                 break 
 
             if path[i][j] == "U":
@@ -541,17 +605,44 @@ def get_action(view):
 
                 pos = ">"
                 j+=1
-            
-        #prev_view = view[:]
-        prev_pos = ret
+        
         ret += end_move
 
+        if path[i][j] == "g":
+
+            if pos == ">":
+                ret += "L"
+            elif pos == "<":
+                ret += "R"
+            elif pos == "v":
+                ret += "RR"
+
+            pos = "^"
+            
+
+
+        print(sx)
+        print(sy)
+        print(i)
+        print(j)
+
+
+        #prev_view = view[:]
+        #print_grid(path)
+        shift_x = i - sx
+        shift_y = j - sy
+        prev_pos = ret
+        
+
+        
+        sx += shift_x
+        sy += shift_y
 
 
         break
     
     
-    print(ret)
+    #print(ret)
     return ret
 
 
@@ -623,5 +714,7 @@ if __name__ == "__main__":
             print(">>>>>>>>>>>"+action)
 
             sock.send(action.encode('utf-8'))
+
+            time.sleep(0.5)
 
     sock.close()
