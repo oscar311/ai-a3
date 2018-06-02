@@ -115,7 +115,7 @@ def special_maze2graph(maze):
                 graph[(row, col)].append(("R", (row, col + 1)))
                 graph[(row, col + 1)].append(("L", (row, col)))
     else :
-
+        print("herro")
         for row, col in graph.keys():
             if row < height - 1 and not maze[row + 1][col] == wall and not maze[row + 1][col] == edge and not maze[row + 1][col] == tree and not maze[row + 1][col] == door:
                 graph[(row, col)].append(("D", (row + 1, col)))
@@ -166,7 +166,7 @@ def maze2graph(maze):
                 graph[(row, col)].append(("R", (row, col + 1)))
                 graph[(row, col + 1)].append(("L", (row, col)))
     else :
-
+        
         for row, col in graph.keys():
             if row < height - 1 and not maze[row + 1][col] == wall and not maze[row + 1][col] == edge and not maze[row + 1][col] == "?" and not maze[row + 1][col] == tree and not maze[row + 1][col] == door:
                 graph[(row, col)].append(("D", (row + 1, col)))
@@ -312,7 +312,7 @@ def update_map(view):
             #rot-=1
     """
     
-    to_print = np.rot90(my_map,2)
+    to_print = np.rot90(my_map,3)
     for i in range(80) :
         for j in range(80) :
             print(to_print[i][j], end='')
@@ -406,7 +406,6 @@ def get_action(view):
 
     #update_map()
 
-    ##print(tools)
     ##print(prev_objects)
     # start cords
     init_x = 2
@@ -429,15 +428,9 @@ def get_action(view):
 
     global my_map, sx, sy
 
-    path_p = solve_view(my_map,sx,sy,"$",0)        
-    path_k = solve_view(my_map,sx,sy,"k",0)
-    path_a = solve_view(my_map,sx,sy,"a",0)
-    path_o = solve_view(my_map,sx,sy,"o",0)
-    path_d = solve_view(my_map,sx,sy,"-",0)
-    path_t = solve_view(my_map,sx,sy,"T",0)
+    
     #path_w = None#xw, yw, pw, path_w = solve_view(view,sx,sy,"w")
-    path_c = solve_view(my_map,sx,sy,"O",0)
-    path_start = solve_view(my_map,sx,sy,"s",0)
+    #path_c = solve_view(my_map,sx,sy,"O",0) 
 
 
     # special end move for object such as trees and doors 
@@ -445,62 +438,61 @@ def get_action(view):
 
     global shift_x, shift_y, tools
 
-    #print(tools)
+    print(tools)
     
 
     #global visited
     # determine which are reachable
-    if "$" in tools and path_start != None:
-        path = path_start
-        #print(">>>>>>> start")
-    elif path_p != None:
-        #view[xp][yp] = " "
-        path = path_p
-        #tools.append("$")
-        #print(">>>>>>> prise")
-        #visited = set()
-        #shift_x = xp - init_x
-        #shift_y = yp - init_y
-    elif path_k != None and "k" not in tools:
+    if "$" in tools and solve_view(my_map,sx,sy,"s",0) != None:
+        path = solve_view(my_map,sx,sy,"s",0)   
+    elif "k" not in tools and solve_view(my_map,sx,sy,"k",0) != None:
         #view[xk][yk] = " "
         #tools.append("k")
-        path = path_k
+        path = solve_view(my_map,sx,sy,"k",0)
         #print(">>>>>>> key")
         #visited = set()
         #shift_x = xk - init_x
         #shift_y = yk - init_y
-    elif path_d != None and "k" in tools:
+    elif "k" in tools and solve_view(my_map,sx,sy,"-",0) != None :
         #view[xd][yd] = " "
         end_move += "UF"
-        path = path_d
+        path = solve_view(my_map,sx,sy,"-",0)
         #print(">>>>>>> door")
         #visited = set()
         #shift_x = xd - init_x
         #shift_y = yd - init_y
-    elif path_a != None and "a" not in tools:
+    elif "a" not in tools and solve_view(my_map,sx,sy,"a",0) != None :
         #view[xa][ya] = " "
         #tools.append("a")
-        path = path_a
+        path = solve_view(my_map,sx,sy,"a",0)
         #print(">>>>>>> axe")
         #visited = set()
         #shift_x = xa - init_x
         #shift_y = ya - init_y
-    elif path_t != None and "a" in tools:
+    elif "a" in tools and solve_view(my_map,sx,sy,"T",0) != None :
         #view[xt][yt] = " "
         end_move += "CF"
-        path = path_t
+        path = solve_view(my_map,sx,sy,"T",0)
         #print(">>>>>>> tree")
         #visited = set()
         #shift_x = xt - init_x
         #shift_y = yt - init_y
-    elif path_o != None:
+    elif solve_view(my_map,sx,sy,"o",0) != None:
         #view[xo][yo] = " "
-        path = path_o
+        path = solve_view(my_map,sx,sy,"o",0)
         #print(">>>>>>> stone")
 
         #visited = set()
         #shift_x = xo - init_x
         #shift_y = yo - init_y
+    elif solve_view(my_map,sx,sy,"$",0) != None:
+        #view[xp][yp] = " "
+        path = solve_view(my_map,sx,sy,"$",0)
+        #tools.append("$")
+        #print(">>>>>>> prise")
+        #visited = set()
+        #shift_x = xp - init_x
+        #shift_y = yp - init_y  
     else:   
         
         path = solve_view(my_map,sx,sy,"?",1)        
@@ -552,7 +544,7 @@ def get_action(view):
 
         #print(my_map[i][j], end=',')
 
-        if my_map[i][j] == key or my_map[i][j] == axe or my_map[i][j] == stone or my_map[i][j] == treasure or my_map[i][j] == tree:
+        if my_map[i][j] == key or my_map[i][j] == axe or my_map[i][j] == stone or my_map[i][j] == treasure or (my_map[i][j] == tree and axe in tools):
             tools.append(my_map[i][j])
             my_map[i][j] = " "
 
@@ -605,6 +597,7 @@ def get_action(view):
         if p == "U":
             prev_x = i
             prev_y = j
+            
             if pos == "^":
                 ret += "F"
             elif pos == ">":
@@ -615,15 +608,14 @@ def get_action(view):
                 ret += "RRF"
 
             pos = "^"
-            # to do
-            #been_here[i][j] = "b"
-            if my_map[i-1][j] != wall or (my_map[i-1][j] == door and key in tools) or (my_map[i-1][j] == tree and axe in tools) or my_map[i-1][j] == treasure :
-                i-=1
-
+            i-=1
+        
 
         elif p == "D":
             prev_x = i
             prev_y = j
+            
+        
             if pos == "^":
                 ret += "RRF"
             elif pos == ">":
@@ -635,14 +627,18 @@ def get_action(view):
 
             pos = "v"
 
-            #been_here[i][j] = "b"
-            if my_map[i+1][j] != wall or (my_map[i+1][j] == door and key in tools) or (my_map[i+1][j] == tree and axe in tools) or my_map[i+1][j] == treasure :
-                i+=1
+            i+=1
+            
             
 
         elif p == "L":
             prev_x = i
             prev_y = j
+            
+
+            
+
+
             if pos == "^":
                 ret += "LF"
             elif pos == ">":
@@ -652,19 +648,16 @@ def get_action(view):
             elif pos == "v":
                 ret += "RF"
 
-            
-
             pos = "<"
 
-            #been_here[i][j] = "b"
-            if my_map[i][j-1] != wall or (my_map[i][j-1] == door and key in tools) or (my_map[i][j-1] == tree and axe in tools) or my_map[i][j-1] == treasure :
-                j-=1
-            
+            j-=1
+        
             
 
         elif p == "R":
             prev_x = i
             prev_y = j
+                
             if pos == "^":
                 ret += "RF"
             elif pos == ">":
@@ -676,10 +669,7 @@ def get_action(view):
 
             pos = ">"
             
-            #been_here[i][j] = "b"
-            if my_map[i][j+1] != wall or (my_map[i][j+1] == door and key in tools) or (my_map[i][j+1] == tree and axe in tools) or my_map[i][j+1] == treasure :
-                j+=1
-        
+            j+=1
 
         prev_obj = curr_obj
         curr_obj = my_map[i][j]
@@ -688,8 +678,8 @@ def get_action(view):
     #print()
     #print(sx)
     #print(sy)
-    #print(i)
-    #print(j)
+    print(i)
+    print(j)
 
 
     #prev_view = view[:]
@@ -704,8 +694,8 @@ def get_action(view):
     sy += shift_y
 
 
-    
-    ##print(ret)
+    print(path)
+    print(ret)
     return ret
 
 
@@ -773,6 +763,6 @@ if __name__ == "__main__":
 
             sock.send(action.encode('utf-8'))
 
-            time.sleep(0.1)
+            time.sleep(0.5)
 
     sock.close()
