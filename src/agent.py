@@ -1,4 +1,6 @@
-# !/usr/bin/python3
+#!/usr/bin/python3
+
+
 # ^^ note the python directive on the first line
 # COMP 9414 agent initiation file 
 # requires the host is running before the agent
@@ -124,7 +126,7 @@ def special_maze2graph(maze):
 
 
     
-    #print(graph)
+    ##print(graph)
         
     return graph
 
@@ -175,7 +177,7 @@ def maze2graph(maze):
 
 
     
-    #print(graph)
+    ##print(graph)
         
     return graph
 
@@ -229,10 +231,10 @@ def update_map(view):
     #my_map.put(view.copy())
     
     global my_map, sx, sy, shift_y, shift_x
-    #print(shift_x)
-    #print(shift_y)
-    #print(sx)
-    #print(sy)
+    ##print(shift_x)
+    ##print(shift_y)
+    ##print(sx)
+    ##print(sy)
 
 
     
@@ -240,7 +242,7 @@ def update_map(view):
     #print_grid(prev_view)
     global start, start_pos, prev_pos, tools
 
-    #print(">>> prev pos " + prev_pos)
+    ##print(">>> prev pos " + prev_pos)
 
 
     #global rot
@@ -299,6 +301,7 @@ def update_map(view):
         sy+=shift_y
     """
 
+    my_map[39][39] = "s"
     """
     for i in prev_pos:
         if i == "L":
@@ -308,16 +311,15 @@ def update_map(view):
             my_map = np.rot90(my_map,1)
             #rot-=1
     """
-
+    
     to_print = np.rot90(my_map,2)
     for i in range(80) :
         for j in range(80) :
             print(to_print[i][j], end='')
         print()
+    
 
 
-
-    my_map[39][39] = "s"
 
 
 
@@ -366,28 +368,28 @@ def r_solve(maze,seen,p,x,y,goal):
         i,j,t, p = r_solve(maze,seen,p,x-1,y,goal, startX, startY) # // Recalls method one to the right
         if t :
             p += "U"; #// Sets that path value to true;
-            #print(">>>> " + str(x) + " " + str(y) + " <<<<<") 
+            ##print(">>>> " + str(x) + " " + str(y) + " <<<<<") 
         
             return x,y, t, p
     if x != 79:
         i,j,t, p = r_solve(maze,seen,p,x+1,y,goal, startX, startY) # // Recalls method one to the down
         if t :
             p += "D"; #// Sets that path value to true;
-            #print(">>>> " + str(x) + " " + str(y) + " <<<<<") 
+            ##print(">>>> " + str(x) + " " + str(y) + " <<<<<") 
             
             return x,y, t, p
     if y != 0:
         i,j,t, p = r_solve(maze,seen,p,x,y-1,goal, startX, startY) # // Recalls method one to the left
         if t :
             p += "L"; #// Sets that path value to true;
-            #print(">>>> " + str(x) + " " + str(y) + " <<<<<") 
+            ##print(">>>> " + str(x) + " " + str(y) + " <<<<<") 
             
             return x,y, t, p
     if y != 79:
         i,j,t, p = r_solve(maze,seen,p,x,y+1,goal, startX, startY) # // Recalls method one to the right
         if t :
             p += "R"; #// Sets that path value to true;
-            #print(">>>> " + str(x) + " " + str(y) + " <<<<<") 
+            ##print(">>>> " + str(x) + " " + str(y) + " <<<<<") 
             
             return x,y, t, p
             
@@ -397,15 +399,15 @@ def r_solve(maze,seen,p,x,y,goal):
 
 # function to take get action from AI or user
 def get_action(view):
-    #print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
+    ##print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
     global pos, prev_pos
-    #print("prev pos" + prev_pos)
+    ##print("prev pos" + prev_pos)
     #print_grid(view)
 
     #update_map()
 
-    #print(tools)
-    #print(prev_objects)
+    ##print(tools)
+    ##print(prev_objects)
     # start cords
     init_x = 2
     init_y = 2
@@ -443,19 +445,19 @@ def get_action(view):
 
     global shift_x, shift_y, tools
 
-    print(tools)
+    #print(tools)
     
 
     #global visited
     # determine which are reachable
     if "$" in tools and path_start != None:
         path = path_start
-        print(">>>>>>> start")
+        #print(">>>>>>> start")
     elif path_p != None:
         #view[xp][yp] = " "
         path = path_p
         #tools.append("$")
-        print(">>>>>>> prise")
+        #print(">>>>>>> prise")
         #visited = set()
         #shift_x = xp - init_x
         #shift_y = yp - init_y
@@ -463,7 +465,7 @@ def get_action(view):
         #view[xk][yk] = " "
         #tools.append("k")
         path = path_k
-        print(">>>>>>> key")
+        #print(">>>>>>> key")
         #visited = set()
         #shift_x = xk - init_x
         #shift_y = yk - init_y
@@ -471,7 +473,7 @@ def get_action(view):
         #view[xd][yd] = " "
         end_move += "UF"
         path = path_d
-        print(">>>>>>> door")
+        #print(">>>>>>> door")
         #visited = set()
         #shift_x = xd - init_x
         #shift_y = yd - init_y
@@ -479,7 +481,7 @@ def get_action(view):
         #view[xa][ya] = " "
         #tools.append("a")
         path = path_a
-        print(">>>>>>> axe")
+        #print(">>>>>>> axe")
         #visited = set()
         #shift_x = xa - init_x
         #shift_y = ya - init_y
@@ -487,14 +489,14 @@ def get_action(view):
         #view[xt][yt] = " "
         end_move += "CF"
         path = path_t
-        print(">>>>>>> tree")
+        #print(">>>>>>> tree")
         #visited = set()
         #shift_x = xt - init_x
         #shift_y = yt - init_y
     elif path_o != None:
         #view[xo][yo] = " "
         path = path_o
-        print(">>>>>>> stone")
+        #print(">>>>>>> stone")
 
         #visited = set()
         #shift_x = xo - init_x
@@ -504,7 +506,7 @@ def get_action(view):
         path = solve_view(my_map,sx,sy,"?",1)        
 
 
-        print(">>>>>>>>>>>>>>>> basic")
+        #print(">>>>>>>>>>>>>>>> basic")
         """path = ""
 
         i = sx
@@ -548,7 +550,7 @@ def get_action(view):
     curr_obj = my_map[i][j]
     for p in path:
 
-        print(my_map[i][j], end=',')
+        #print(my_map[i][j], end=',')
 
         if my_map[i][j] == key or my_map[i][j] == axe or my_map[i][j] == stone or my_map[i][j] == treasure or my_map[i][j] == tree:
             tools.append(my_map[i][j])
@@ -568,7 +570,7 @@ def get_action(view):
 
             ret = ret[:-1]
 
-            print("herro")
+            #print("herro")
 
             if pos == ">":
                 ret += "L"
@@ -683,11 +685,11 @@ def get_action(view):
         curr_obj = my_map[i][j]
 
         ##been_here[i][j] = True
-    print()
-    print(sx)
-    print(sy)
-    print(i)
-    print(j)
+    #print()
+    #print(sx)
+    #print(sy)
+    #print(i)
+    #print(j)
 
 
     #prev_view = view[:]
@@ -703,13 +705,13 @@ def get_action(view):
 
 
     
-    #print(ret)
+    ##print(ret)
     return ret
 
 
 # helper function to print the grid
 def print_grid(view):
-    print('+-----+')
+    #print('+-----+')
     for ln in view:
         print("|"+str(ln[0])+str(ln[1])+str(ln[2])+str(ln[3])+str(ln[4])+"|")
     print('+-----+')
@@ -725,7 +727,7 @@ if __name__ == "__main__":
 
     # checking for valid port number
     if not 1025 <= port <= 65535:
-        print('Incorrect port number')
+        #print('Incorrect port number')
         sys.exit()
 
     # creates TCP socket
@@ -761,13 +763,13 @@ if __name__ == "__main__":
                 j=0
                 i=(i+1)%5
         if j==0 and i==0:
-            print("~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
-            #print_grid(view) # COMMENT THIS OUT ON SUBMISSION
+            #print("~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
+            print_grid(view) # COMMENT THIS OUT ON SUBMISSION
             
             update_map(view)            
             action = get_action(view) # gets new actions
 
-            print(">>>>>>>>>>>"+action)
+            #print(">>>>>>>>>>>"+action)
 
             sock.send(action.encode('utf-8'))
 
