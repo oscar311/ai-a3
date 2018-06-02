@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+#!/usr/bin/python3.5
 
 # ^^ note the python directive on the first line
 # COMP 9414 agent initiation file 
@@ -31,8 +31,8 @@ import collections
 import random
 import time
 import copy
-import numpy as np
-from   collections import deque
+#import numpy as np
+from collections import deque
 
 
 # keep track of tools
@@ -89,7 +89,7 @@ rot = 0
 view = [['' for _ in range(5)] for _ in range(5)]
 #my_map = [['' for _ in range(80)] for _ in range(80)]
 
-my_map = np.array([['?' for _ in range(80)] for _ in range(80)])
+my_map = [['?' for _ in range(80)] for _ in range(80)]
 
 
 visited = set()
@@ -128,7 +128,7 @@ def special_maze2graph(maze):
                 graph[(row, col)].append(("R", (row, col + 1)))
                 graph[(row, col + 1)].append(("L", (row, col)))
     else :
-        print("herro")
+        #print("herro")
         for row, col in graph.keys():
             if row < height - 1 and not maze[row + 1][col] == wall and not maze[row + 1][col] == edge and not maze[row + 1][col] == tree and not maze[row + 1][col] == door:
                 graph[(row, col)].append(("D", (row + 1, col)))
@@ -266,14 +266,14 @@ def update_map(view):
     
 
     #rot = 0
-    for i in prev_pos:
+    """for i in prev_pos:
         if i == "L":
             view = np.rot90(view,1)
             #rot+=1
         elif i == "R":
             view = np.rot90(view,3)
             #rot-=1
-
+    """
     
 
     x = sx
@@ -324,13 +324,13 @@ def update_map(view):
             my_map = np.rot90(my_map,1)
             #rot-=1
     """
-    
+    """
     to_print = np.rot90(my_map,3)
     for i in range(80) :
         for j in range(80) :
             print(to_print[i][j], end='')
         print()
-    
+    """
 
 
 
@@ -343,7 +343,7 @@ def solve_view(maze,startX,startY,goal, mode):
     
     # init path array
     p = ""
-    seen = np.array([[False for _ in range(80)] for _ in range(80)])
+    #seen = np.array([[False for _ in range(80)] for _ in range(80)])
 
     
 
@@ -451,7 +451,7 @@ def get_action(view):
 
     global shift_x, shift_y, tools
 
-    print(tools)
+    #print(tools)
     
 
     #global visited
@@ -691,8 +691,8 @@ def get_action(view):
     #print()
     #print(sx)
     #print(sy)
-    print(i)
-    print(j)
+    #print(i)
+    #print(j)
 
 
     #prev_view = view[:]
@@ -707,8 +707,8 @@ def get_action(view):
     sy += shift_y
 
 
-    print(path)
-    print(ret)
+    #print(path)
+    #print(ret)
     return ret
 
 
@@ -730,7 +730,7 @@ if __name__ == "__main__":
 
     # checking for valid port number
     if not 1025 <= port <= 65535:
-        #print('Incorrect port number')
+        print('Incorrect port number')
         sys.exit()
 
     # creates TCP socket
@@ -767,7 +767,7 @@ if __name__ == "__main__":
                 i=(i+1)%5
         if j==0 and i==0:
             #print("~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
-            print_grid(view) # COMMENT THIS OUT ON SUBMISSION
+            #print_grid(view) # COMMENT THIS OUT ON SUBMISSION
             
             update_map(view)            
             action = get_action(view) # gets new actions
