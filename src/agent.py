@@ -1,6 +1,5 @@
 #!/usr/bin/python3
 
-
 # ^^ note the python directive on the first line
 # COMP 9414 agent initiation file 
 # requires the host is running before the agent
@@ -10,7 +9,21 @@
 # created by Leo Hoare
 # with slight modifications by Alan Blair
 
-# modified by Oscar Downing (z5114817)
+# Modified by Oscar Downing (z5114817) and Tim Thacker (z5115699)
+
+# === DESIGN ===
+
+# The data structure used to keep track of all the known parts of the map is a 160 x 160 2D array. This size is to accommodate an 80 x 80 map which starts the agent in the corner.
+# In our data structure the agent starts in the middle so whichever way the map grows it will never go past the edge of the array.
+
+# Each time a new map segment is received, the map data structure is updated with the new information.
+# A Breadth first search is then performed on all of the objects
+
+# If a path to the treasure cannot be found, the agent is insutructed to move around and discover more of the map.
+
+# This is repeated until a path can be found to the treasure and all the tools required.
+
+# Finally a path is constructed to aquire all the tools necessary and to the treasure then back to the start.
 
 import sys
 import socket
@@ -19,7 +32,7 @@ import random
 import time
 import copy
 import numpy as np
-from collections import deque
+from   collections import deque
 
 
 # keep track of tools
