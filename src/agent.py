@@ -32,13 +32,10 @@ import random
 import time
 import copy
 import numpy as np
-from collections import deque
-
-
+from   collections import deque
 
 # keep track of tools
 tools = []
-
 
 # Obstacles  Tools
 # T   tree    a   axe
@@ -67,14 +64,12 @@ left = 4
 right = 5
 up = 6
 down = 7
- #= Queue(maxsize=1000)
 
 sx = 79
 sy = 79
 
 pos = "^"
 start_pos = "^"
-
 
 start = 1
 
@@ -83,14 +78,12 @@ prev_pos = ""
 rot = 0
 
 # declaring visible grid to agent
-view = [['' for _ in range(5)] for _ in range(5)]
-#my_map = [['' for _ in range(80)] for _ in range(80)]
-
+view   = [[''  for _ in range(5)]   for _ in range(5)]
 my_map = [['?' for _ in range(160)] for _ in range(160)]
 
 
 visited = set()
-def special_maze2graph(maze,goal):
+def special_maze2graph(maze, goal):
     global tools
     height = 160
     width = 160
@@ -113,7 +106,6 @@ def special_maze2graph(maze,goal):
                 graph[(row, col)].append(("R", (row, col + 1)))
                 graph[(row, col + 1)].append(("L", (row, col)))
     else :
-        #print("herro")
         for row, col in graph.keys():
             if row < height - 1 and not maze[row + 1][col] == wall and not maze[row + 1][col] == edge and not maze[row + 1][col] == tree and not maze[row + 1][col] == door:
                 graph[(row, col)].append(("D", (row + 1, col)))
@@ -122,10 +114,6 @@ def special_maze2graph(maze,goal):
                 graph[(row, col)].append(("R", (row, col + 1)))
                 graph[(row, col + 1)].append(("L", (row, col)))
 
-
-    
-    ##print(graph)
-        
     return graph
 
 
@@ -137,8 +125,6 @@ def maze2graph(maze, goal):
 
     if key in tools and goal == door:
         for row, col in graph.keys():
-
-
             if row < height - 1 and not maze[row + 1][col] == wall and not maze[row + 1][col] == edge and not maze[row + 1][col] == "?" and not maze[row + 1][col] == tree:
                 graph[(row, col)].append(("D", (row + 1, col)))
                 graph[(row + 1, col)].append(("U", (row, col)))
@@ -153,8 +139,7 @@ def maze2graph(maze, goal):
             if col < width - 1 and not maze[row][col + 1] == wall and not maze[row][col + 1] == edge and not maze[row][col + 1] == "?" and not maze[row][col + 1] == door:
                 graph[(row, col)].append(("R", (row, col + 1)))
                 graph[(row, col + 1)].append(("L", (row, col)))
-    else :
-           
+    else :  
         for row, col in graph.keys():
             if row < height - 1 and not maze[row + 1][col] == wall and not maze[row + 1][col] == edge and not maze[row + 1][col] == "?" and not maze[row + 1][col] == tree and not maze[row + 1][col] == door:
                 graph[(row, col)].append(("D", (row + 1, col)))
@@ -162,10 +147,6 @@ def maze2graph(maze, goal):
             if col < width - 1 and not maze[row][col + 1] == wall and not maze[row][col + 1] == edge and not maze[row][col + 1] == "?" and not maze[row][col + 1] == tree and not maze[row][col + 1] == door:
                 graph[(row, col)].append(("R", (row, col + 1)))
                 graph[(row, col + 1)].append(("L", (row, col)))
-
-
-    
-    ##print(graph)
         
     return graph
 
@@ -176,6 +157,7 @@ def bfs(maze, goal, x, y):
     visited = set()
     graph = maze2graph(maze,goal)
     i = 0
+
     while queue:
         path, current = queue.popleft()
         if maze[current[0]][current[1]] == goal and i > 0:# and current[0] != x and current[1] != y:
@@ -188,7 +170,6 @@ def bfs(maze, goal, x, y):
             queue.append((path + direction, neighbour))
         i+=1
     return None
-
 
 def exploring_bfs(maze, goal, x, y):
     global tools
@@ -210,7 +191,6 @@ def exploring_bfs(maze, goal, x, y):
             queue.append((path + direction, neighbour))
         i+=1
     return None
-
 
 def careful_exploring_bfs(maze, goal, x, y):
     global tools
@@ -234,12 +214,8 @@ def careful_exploring_bfs(maze, goal, x, y):
     return None
 
 def update_map(view):
-
-
-    
     global my_map, sx, sy, shift_y, shift_x, start, start_pos, prev_pos, tools
 
-    
     x = sx
     y = sy
 
@@ -248,8 +224,6 @@ def update_map(view):
     
     for i in range(5):
         for j in range(5):
-
-
             if i == 2 and j == 2 and my_map[i+x][j+y] != water: 
                 my_map[i + x][j + y] = ' '
                 continue
@@ -273,13 +247,9 @@ def update_map(view):
 
 # solve view starts up the recursive solve
 # see r_solve()
-def solve_view(maze,startX,startY,goal, mode):
-    
+def solve_view(maze, startX, startY, goal, mode):
     # init path array
     p = ""
-    #seen = np.array([[False for _ in range(80)] for _ in range(80)])
-
-    
 
     if mode == 0:
         path = bfs(maze, goal, startX, startY)
@@ -293,30 +263,18 @@ def solve_view(maze,startX,startY,goal, mode):
         #return r_solve(maze,seen,p,startX,startY,goal, startX, startY)
         return careful_exploring_bfs(maze, goal, startX, startY)
 
-
-
 # function to take get action from AI or user
 def get_action(view):
-    ##print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
     global pos, prev_pos
-    ##print("prev pos" + prev_pos)
-    #print_grid(view)
 
-    #update_map()
-
-    ##print(prev_objects)
     # start cords
     init_x = 2
     init_y = 2
-
-    
 
     # which direction the player is facing
     pos = view[init_x][init_y]
 
     # update the map
-
-
 
     # solve the given 5x5 grid giving the various tools
     # as the goals, working out way up in the list of most 
@@ -326,11 +284,6 @@ def get_action(view):
 
     global my_map, sx, sy
 
-    
-    #path_w = None#xw, yw, pw, path_w = solve_view(view,sx,sy,"w")
-    #path_c = solve_view(my_map,sx,sy,"O",0) 
-
-
     # special end move for object such as trees and doors 
     end_move = ""
 
@@ -338,108 +291,58 @@ def get_action(view):
 
     print(tools)
     
-
-    #global visited
     # determine which are reachable
     if "$" in tools and solve_view(my_map,sx,sy,"s",0) != None:
         path = solve_view(my_map,sx,sy,"s",0)   
     elif "k" not in tools and solve_view(my_map,sx,sy,"k",0) != None:
-        #view[xk][yk] = " "
-        #tools.append("k")
         path = solve_view(my_map,sx,sy,"k",0)
         print(">>>>>>> key")
-        #visited = set()
-        #shift_x = xk - init_x
-        #shift_y = yk - init_y
     elif "k" in tools and solve_view(my_map,sx,sy,"-",0) != None :
-        #view[xd][yd] = " "
         end_move += "UF"
         path = solve_view(my_map,sx,sy,"-",0)
         print(">>>>>>> door")
-        #visited = set()
-        #shift_x = xd - init_x
-        #shift_y = yd - init_y
     elif "a" not in tools and solve_view(my_map,sx,sy,"a",0) != None :
-        #view[xa][ya] = " "
-        #tools.append("a")
         path = solve_view(my_map,sx,sy,"a",0)
         print(">>>>>>> axe")
-        #visited = set()
-        #shift_x = xa - init_x
-        #shift_y = ya - init_y
     elif "a" in tools and solve_view(my_map,sx,sy,"T",0) != None :
-        #view[xt][yt] = " "
         end_move += "CF"
         path = solve_view(my_map,sx,sy,"T",0)
         print(">>>>>>> tree")
-        #visited = set()
-        #shift_x = xt - init_x
-        #shift_y = yt - init_y
     elif solve_view(my_map,sx,sy,"o",0) != None:
-        #view[xo][yo] = " "
         path = solve_view(my_map,sx,sy,"o",0)
         print(">>>>>>> stone")
-
-        #visited = set()
-        #shift_x = xo - init_x
-        #shift_y = yo - init_y
     elif solve_view(my_map,sx,sy,"$",0) != None:
-        #view[xp][yp] = " "
         path = solve_view(my_map,sx,sy,"$",0)
-        #tools.append("$")
         print(">>>>>>> prise")
-        #visited = set()
-        #shift_x = xp - init_x
-        #shift_y = yp - init_y  
-    
     elif solve_view(my_map,sx,sy,"?",2) != None:
         print(">>>>>>> careful")
-
         path = solve_view(my_map,sx,sy,"?",2)
     else:   
         print(">>>>>>> default  ")
-        
         path = solve_view(my_map,sx,sy,"?",1)        
 
-
-        
     global start_pos
 
     ret = ""
     i,j = sx,sy
 
-    """
-    if pos == ">":
-        ret += "L"
-    elif pos == "<":
-        ret += "R"
-    elif pos == "v":
-        ret += "RR"""
     prev_obj = my_map[i][j]
     curr_obj = my_map[i][j]
+
     for p in path:
-
-        #print(my_map[i][j], end=',')
-
         if my_map[i][j] == key or my_map[i][j] == axe or my_map[i][j] == stone or my_map[i][j] == treasure or (my_map[i][j] == tree and axe in tools):
             tools.append(my_map[i][j])
             my_map[i][j] = " "
-
-
         if prev_obj == water and curr_obj == " " and stone in tools:
             my_map[prev_x][prev_y] = " "
             tools.remove(stone)
-
         elif prev_obj == water and curr_obj == " " and tree in tools and stone not in tools:
             tools.remove(tree)
-
         if prev_obj == " " and curr_obj == water and tree not in tools:
             i = prev_x
             j = prev_y
 
             ret = ret[:-1]
-
-            #print("herro")
 
             if pos == ">":
                 ret += "L"
@@ -451,13 +354,7 @@ def get_action(view):
             pos = "^"
             break
 
-
-
-
         if p == "g" :
-
-            
-
             ret += end_move
 
             if pos == ">":
@@ -469,9 +366,6 @@ def get_action(view):
 
             pos = "^"
             break
-
-        #if my_map[i][j] == water:
-        #    break 
 
         if p == "U":
             prev_x = i
@@ -489,11 +383,9 @@ def get_action(view):
             pos = "^"
             i-=1
         
-
         elif p == "D":
             prev_x = i
             prev_y = j
-            
         
             if pos == "^":
                 ret += "RRF"
@@ -508,16 +400,10 @@ def get_action(view):
 
             i+=1
             
-            
-
         elif p == "L":
             prev_x = i
             prev_y = j
             
-
-            
-
-
             if pos == "^":
                 ret += "LF"
             elif pos == ">":
@@ -529,9 +415,7 @@ def get_action(view):
 
             pos = "<"
 
-            j-=1
-        
-            
+            j-=1    
 
         elif p == "R":
             prev_x = i
@@ -553,40 +437,23 @@ def get_action(view):
         prev_obj = curr_obj
         curr_obj = my_map[i][j]
 
-        ##been_here[i][j] = True
-    #print()
-    #print(sx)
-    #print(sy)
-    #print(i)
-    #print(j)
-
-
-    #prev_view = view[:]
-    #print_grid(path)
     shift_x = i - sx
     shift_y = j - sy
     prev_pos = ret
     
-
-    
     sx += shift_x
     sy += shift_y
 
-
-    #print(path)
-    #print(ret)
     return ret
 
 
 # helper function to print the grid
 def print_grid(view):
-    #print('+-----+')
     for ln in view:
         print("|"+str(ln[0])+str(ln[1])+str(ln[2])+str(ln[3])+str(ln[4])+"|")
     print('+-----+')
 
 if __name__ == "__main__":
-
     # checks for correct amount of arguments 
     if len(sys.argv) != 3:
         print("Usage Python3 "+sys.argv[0]+" -p port \n")
