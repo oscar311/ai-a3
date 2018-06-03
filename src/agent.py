@@ -21,10 +21,17 @@
 # Each time a new map segment is received, the map data structure is updated with the new information.
 # A Breadth first search is then performed on all of the objects
 
+# We chose breadth first search as the number of moves don't matter.
+# Within the the BFS we used a dictionary / hash table for the graph (list of connections)
+
 # If a path to the treasure/key/axe/stone/tree/door cannot be found, the agent is 
 # instructed to move around and discover more of the map.
 
-# This is repeated until a path can be found to the treasure and all the tools required.
+# This is repeated until a path can be found to the treasure and paths can be found to all the tools required to get to the treasure.
+# The path to the treasure is analysed to determine which tools are required.
+
+# This algorithm was chosen because a solution can be generated if a possible path to the treasure is found
+# and and to all the required tools
 
 import sys
 import socket
