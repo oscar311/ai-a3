@@ -18,6 +18,7 @@
 # In our data structure the agent starts in the middle so whichever way the map grows it will 
 # never go past the edge of the array.
 
+
 # Each time a new map segment is received, the map data structure is updated with the new information.
 # A Breadth first search is then performed on all of the objects
 
@@ -32,8 +33,7 @@ import collections
 import random
 import time
 import copy
-import numpy as np
-from   collections import deque
+from collections import deque
 
 # keep track of tools
 tools = []
@@ -51,212 +51,93 @@ tree, door, water = "T", "-", "~"
 # tools
 key, axe, stone, treasure = "k", "a", "o", "$"
 
-# previous x and y of player
+# the x, y position change of the player
 shift_x = 0
 shift_y = 0
 
-search_mode = 0
-
-left_up = 2
-left_down = 3
-right_up = 0
-right_down = 1
-left = 4
-right = 5
-up = 6
-down = 7
-
+# position of the player
 sx = 79
 sy = 79
 
+# current position
 pos = "^"
-start_pos = "^"
-
-start = 1
-
-prev_pos = ""
-
-rot = 0
 
 # declaring visible grid to agent
 view   = [[''  for _ in range(5)]   for _ in range(5)]
+
+# the map of we build from 5x5 grids
 my_map = [['?' for _ in range(160)] for _ in range(160)]
 
 
-visited = set()
-def special_maze2graph(maze, goal):
-    global tools
-    height = 160
-    width = 160
-    graph = {(i, j): [] for j in range(width) for i in range(height) if not maze[i][j] == wall}
+# helper function to print the grid
+def print_grid(view):
+    for ln in view:
+        print("|"+str(ln[0])+str(ln[1])+str(ln[2])+str(ln[3])+str(ln[4])+"|")
+    print('+-----+')
 
-    if key in tools and goal == door:
-        for row, col in graph.keys():
-            if row < height - 1 and not maze[row + 1][col] == wall and not maze[row + 1][col] == edge and not maze[row + 1][col] == tree:
-                graph[(row, col)].append(("D", (row + 1, col)))
-                graph[(row + 1, col)].append(("U", (row, col)))
-            if col < width - 1 and not maze[row][col + 1] == wall and not maze[row][col + 1] == edge and not maze[row][col + 1] == tree:
-                graph[(row, col)].append(("R", (row, col + 1)))
-                graph[(row, col + 1)].append(("L", (row, col)))
-    elif axe in tools and goal == tree:
-        for row, col in graph.keys():
-            if row < height - 1 and not maze[row + 1][col] == wall and not maze[row + 1][col] == edge and not maze[row + 1][col] == door:
-                graph[(row, col)].append(("D", (row + 1, col)))
-                graph[(row + 1, col)].append(("U", (row, col)))
-            if col < width - 1 and not maze[row][col + 1] == wall and not maze[row][col + 1] == edge and not maze[row][col + 1] == door:
-                graph[(row, col)].append(("R", (row, col + 1)))
-                graph[(row, col + 1)].append(("L", (row, col)))
-    else :
-        for row, col in graph.keys():
-            if row < height - 1 and not maze[row + 1][col] == wall and not maze[row + 1][col] == edge and not maze[row + 1][col] == tree and not maze[row + 1][col] == door:
-                graph[(row, col)].append(("D", (row + 1, col)))
-                graph[(row + 1, col)].append(("U", (row, col)))
-            if col < width - 1 and not maze[row][col + 1] == wall and not maze[row][col + 1] == edge and not maze[row][col + 1] == tree and not maze[row][col + 1] == door:
-                graph[(row, col)].append(("R", (row, col + 1)))
-                graph[(row, col + 1)].append(("L", (row, col)))
+if __name__ == "__main__":
+    # checks for correct amount of arguments 
+    if len(sys.argv) != 3:
+        print("Usage Python3 "+sys.argv[0]+" -p port \n")
+        sys.exit(1)
 
-    return graph
+    port = int(sys.argv[2])
 
+    # checking for valid port number
+    if not 1025 <= port <= 65535:
+        print('Incorrect port number')
+        sys.exit()
 
-def maze2graph(maze, goal):
-    global tools
-    height = 160
-    width = 160
-    graph = {(i, j): [] for j in range(width) for i in range(height) if not maze[i][j] == wall}
+    # creates TCP socket
+    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    try:
+         # tries to connect to host
+         # requires host is running before agent
+         sock.connect(('localhost',port))
+    except (ConnectionRefusedError):
+         print('Connection refused, check host is running')
+         sys.exit()
 
-    if key in tools and goal == door:
-        for row, col in graph.keys():
-            if row < height - 1 and not maze[row + 1][col] == wall and not maze[row + 1][col] == edge and not maze[row + 1][col] == "?" and not maze[row + 1][col] == tree:
-                graph[(row, col)].append(("D", (row + 1, col)))
-                graph[(row + 1, col)].append(("U", (row, col)))
-            if col < width - 1 and not maze[row][col + 1] == wall and not maze[row][col + 1] == edge and not maze[row][col + 1] == "?" and not maze[row][col + 1] == tree:
-                graph[(row, col)].append(("R", (row, col + 1)))
-                graph[(row, col + 1)].append(("L", (row, col)))
-    elif axe in tools and goal == tree:
-        for row, col in graph.keys():
-            if row < height - 1 and not maze[row + 1][col] == wall and not maze[row + 1][col] == edge and not maze[row + 1][col] == "?" and not maze[row + 1][col] == door:
-                graph[(row, col)].append(("D", (row + 1, col)))
-                graph[(row + 1, col)].append(("U", (row, col)))
-            if col < width - 1 and not maze[row][col + 1] == wall and not maze[row][col + 1] == edge and not maze[row][col + 1] == "?" and not maze[row][col + 1] == door:
-                graph[(row, col)].append(("R", (row, col + 1)))
-                graph[(row, col + 1)].append(("L", (row, col)))
-    else :  
-        for row, col in graph.keys():
-            if row < height - 1 and not maze[row + 1][col] == wall and not maze[row + 1][col] == edge and not maze[row + 1][col] == "?" and not maze[row + 1][col] == tree and not maze[row + 1][col] == door:
-                graph[(row, col)].append(("D", (row + 1, col)))
-                graph[(row + 1, col)].append(("U", (row, col)))
-            if col < width - 1 and not maze[row][col + 1] == wall and not maze[row][col + 1] == edge and not maze[row][col + 1] == "?" and not maze[row][col + 1] == tree and not maze[row][col + 1] == door:
-                graph[(row, col)].append(("R", (row, col + 1)))
-                graph[(row, col + 1)].append(("L", (row, col)))
-        
-    return graph
+    # navigates through grid with input stream of data
+    i=0
+    j=0
+    while 1:
+        data=sock.recv(100)
+        if not data:
+            exit()
 
 
-def bfs(maze, goal, x, y):
-    global tools
-    queue = deque([("",(x,y))])
-    visited = set()
-    graph = maze2graph(maze,goal)
-    i = 0
+        for ch in data:
 
-    while queue:
-        path, current = queue.popleft()
-        if maze[current[0]][current[1]] == goal and i > 0:# and current[0] != x and current[1] != y:
-            path += "g"
-            return path
-        if current in visited or (maze[current[0]][current[1]] == water and tree not in tools) :
-            continue
-        visited.add(current)
-        for direction, neighbour in graph[current]:
-            queue.append((path + direction, neighbour))
-        i+=1
-    return None
+            if (i==2 and j==2):
+                
+                view[i][j] = '^'
+                view[i][j+1] = chr(ch)
+                j+=1 
+            else:
+                view[i][j] = chr(ch)
+            j+=1
+            if j>4:
+                j=0
+                i=(i+1)%5
+        if j==0 and i==0:
+            #print("~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
+            #print_grid(view) # COMMENT THIS OUT ON SUBMISSION
+            
+                        
+            action = get_action(view) # gets new actions
 
-def exploring_bfs(maze, goal, x, y):
-    global tools
-    queue = deque([("",(x,y))])
-    visited = set()
-    graph = special_maze2graph(maze,goal)
-    i = 0
+            #print(">>>>>>>>>>>"+action)
 
-    while queue:
-        path, current = queue.popleft()
-        if maze[current[0]][current[1]] == goal and i > 0:# and current[0] != x and current[1] != y:
-            path = path[:-1]
-            path += "g"
-            return path
-        if current in visited or (maze[current[0]][current[1]] == water and tree not in tools):
-            continue
-        visited.add(current)
-        for direction, neighbour in graph[current]:
-            queue.append((path + direction, neighbour))
-        i+=1
-    return None
+            sock.send(action.encode('utf-8'))
 
-def careful_exploring_bfs(maze, goal, x, y):
-    global tools
-    queue = deque([("",(x,y))])
-    visited = set()
-    graph = special_maze2graph(maze,goal)
-    i = 0
+            time.sleep(0.1)
 
-    while queue:
-        path, current = queue.popleft()
-        if maze[current[0]][current[1]] == goal and i > 0:# and current[0] != x and current[1] != y:
-            path = path[:-1]
-            path += "g"
-            return path
-        if current in visited or (maze[current[0]][current[1]] == water):
-            continue
-        visited.add(current)
-        for direction, neighbour in graph[current]:
-            queue.append((path + direction, neighbour))
-        i+=1
-    return None
-
-def update_map(view):
-    global my_map, sx, sy, shift_y, shift_x, start, start_pos, prev_pos, tools
-
-    x = sx
-    y = sy
-
-    x -= 2
-    y -= 2
-    
-    for i in range(5):
-        for j in range(5):
-            if i == 2 and j == 2 and my_map[i+x][j+y] != water: 
-                my_map[i + x][j + y] = ' '
-                continue
-
-            if my_map[i + x][j + y] == "?" :#or (my_map[i + x][j + y] == door and key in tools) or (my_map[i + x][j + y] == tree and axe in tools): 
-                my_map[i + x][j + y] = view[i][j]
-
-            if view[i][j] == "O":
-                my_map[i + x][j + y] = ' '
-
-    my_map[79][79] = "s"
-
-    to_print = np.rot90(my_map,1)
-
-    for i in range(160):
-        for j in range(160):
-            print(to_print[i][j], end='')
-
-        print()
+    sock.close()
 
 
-def solve_view(maze, startX, startY, goal, mode):
-   
-    if mode == 0:
-        path = bfs(maze, goal, startX, startY)
-        return path
-    elif mode == 1:
-        return exploring_bfs(maze, goal, startX, startY)
-    elif mode == 2:
-        return careful_exploring_bfs(maze, goal, startX, startY)
 
-# function to take get action from AI or user
+# decides the action for the AI to make
 def get_action(view):
 
     # update map
@@ -444,68 +325,169 @@ def get_action(view):
     return ret
 
 
-# helper function to print the grid
-def print_grid(view):
-    for ln in view:
-        print("|"+str(ln[0])+str(ln[1])+str(ln[2])+str(ln[3])+str(ln[4])+"|")
-    print('+-----+')
 
-if __name__ == "__main__":
-    # checks for correct amount of arguments 
-    if len(sys.argv) != 3:
-        print("Usage Python3 "+sys.argv[0]+" -p port \n")
-        sys.exit(1)
+def special_maze2graph(maze, goal):
+    global tools
+    height = 160
+    width = 160
+    graph = {(i, j): [] for j in range(width) for i in range(height) if not maze[i][j] == wall}
 
-    port = int(sys.argv[2])
+    if key in tools and goal == door:
+        for row, col in graph.keys():
+            if row < height - 1 and not maze[row + 1][col] == wall and not maze[row + 1][col] == edge and not maze[row + 1][col] == tree:
+                graph[(row, col)].append(("D", (row + 1, col)))
+                graph[(row + 1, col)].append(("U", (row, col)))
+            if col < width - 1 and not maze[row][col + 1] == wall and not maze[row][col + 1] == edge and not maze[row][col + 1] == tree:
+                graph[(row, col)].append(("R", (row, col + 1)))
+                graph[(row, col + 1)].append(("L", (row, col)))
+    elif axe in tools and goal == tree:
+        for row, col in graph.keys():
+            if row < height - 1 and not maze[row + 1][col] == wall and not maze[row + 1][col] == edge and not maze[row + 1][col] == door:
+                graph[(row, col)].append(("D", (row + 1, col)))
+                graph[(row + 1, col)].append(("U", (row, col)))
+            if col < width - 1 and not maze[row][col + 1] == wall and not maze[row][col + 1] == edge and not maze[row][col + 1] == door:
+                graph[(row, col)].append(("R", (row, col + 1)))
+                graph[(row, col + 1)].append(("L", (row, col)))
+    else :
+        for row, col in graph.keys():
+            if row < height - 1 and not maze[row + 1][col] == wall and not maze[row + 1][col] == edge and not maze[row + 1][col] == tree and not maze[row + 1][col] == door:
+                graph[(row, col)].append(("D", (row + 1, col)))
+                graph[(row + 1, col)].append(("U", (row, col)))
+            if col < width - 1 and not maze[row][col + 1] == wall and not maze[row][col + 1] == edge and not maze[row][col + 1] == tree and not maze[row][col + 1] == door:
+                graph[(row, col)].append(("R", (row, col + 1)))
+                graph[(row, col + 1)].append(("L", (row, col)))
 
-    # checking for valid port number
-    if not 1025 <= port <= 65535:
-        print('Incorrect port number')
-        sys.exit()
-
-    # creates TCP socket
-    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    try:
-         # tries to connect to host
-         # requires host is running before agent
-         sock.connect(('localhost',port))
-    except (ConnectionRefusedError):
-         print('Connection refused, check host is running')
-         sys.exit()
-
-    # navigates through grid with input stream of data
-    i=0
-    j=0
-    while 1:
-        data=sock.recv(100)
-        if not data:
-            exit()
+    return graph
 
 
-        for ch in data:
+def maze2graph(maze, goal):
+    global tools
+    height = 160
+    width = 160
+    graph = {(i, j): [] for j in range(width) for i in range(height) if not maze[i][j] == wall}
 
-            if (i==2 and j==2):
-                
-                view[i][j] = '^'
-                view[i][j+1] = chr(ch)
-                j+=1 
-            else:
-                view[i][j] = chr(ch)
-            j+=1
-            if j>4:
-                j=0
-                i=(i+1)%5
-        if j==0 and i==0:
-            #print("~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
-            #print_grid(view) # COMMENT THIS OUT ON SUBMISSION
-            
-                        
-            action = get_action(view) # gets new actions
+    if key in tools and goal == door:
+        for row, col in graph.keys():
+            if row < height - 1 and not maze[row + 1][col] == wall and not maze[row + 1][col] == edge and not maze[row + 1][col] == "?" and not maze[row + 1][col] == tree:
+                graph[(row, col)].append(("D", (row + 1, col)))
+                graph[(row + 1, col)].append(("U", (row, col)))
+            if col < width - 1 and not maze[row][col + 1] == wall and not maze[row][col + 1] == edge and not maze[row][col + 1] == "?" and not maze[row][col + 1] == tree:
+                graph[(row, col)].append(("R", (row, col + 1)))
+                graph[(row, col + 1)].append(("L", (row, col)))
+    elif axe in tools and goal == tree:
+        for row, col in graph.keys():
+            if row < height - 1 and not maze[row + 1][col] == wall and not maze[row + 1][col] == edge and not maze[row + 1][col] == "?" and not maze[row + 1][col] == door:
+                graph[(row, col)].append(("D", (row + 1, col)))
+                graph[(row + 1, col)].append(("U", (row, col)))
+            if col < width - 1 and not maze[row][col + 1] == wall and not maze[row][col + 1] == edge and not maze[row][col + 1] == "?" and not maze[row][col + 1] == door:
+                graph[(row, col)].append(("R", (row, col + 1)))
+                graph[(row, col + 1)].append(("L", (row, col)))
+    else :  
+        for row, col in graph.keys():
+            if row < height - 1 and not maze[row + 1][col] == wall and not maze[row + 1][col] == edge and not maze[row + 1][col] == "?" and not maze[row + 1][col] == tree and not maze[row + 1][col] == door:
+                graph[(row, col)].append(("D", (row + 1, col)))
+                graph[(row + 1, col)].append(("U", (row, col)))
+            if col < width - 1 and not maze[row][col + 1] == wall and not maze[row][col + 1] == edge and not maze[row][col + 1] == "?" and not maze[row][col + 1] == tree and not maze[row][col + 1] == door:
+                graph[(row, col)].append(("R", (row, col + 1)))
+                graph[(row, col + 1)].append(("L", (row, col)))
+        
+    return graph
 
-            #print(">>>>>>>>>>>"+action)
 
-            sock.send(action.encode('utf-8'))
+def bfs(maze, goal, x, y):
+    global tools
+    queue = deque([("",(x,y))])
+    visited = set()
+    graph = maze2graph(maze,goal)
+    i = 0
 
-            time.sleep(0.1)
+    while queue:
+        path, current = queue.popleft()
+        if maze[current[0]][current[1]] == goal and i > 0:# and current[0] != x and current[1] != y:
+            path += "g"
+            return path
+        if current in visited or (maze[current[0]][current[1]] == water and tree not in tools) :
+            continue
+        visited.add(current)
+        for direction, neighbour in graph[current]:
+            queue.append((path + direction, neighbour))
+        i+=1
+    return None
 
-    sock.close()
+def exploring_bfs(maze, goal, x, y):
+    global tools
+    queue = deque([("",(x,y))])
+    visited = set()
+    graph = special_maze2graph(maze,goal)
+    i = 0
+
+    while queue:
+        path, current = queue.popleft()
+        if maze[current[0]][current[1]] == goal and i > 0:# and current[0] != x and current[1] != y:
+            path = path[:-1]
+            path += "g"
+            return path
+        if current in visited or (maze[current[0]][current[1]] == water and tree not in tools):
+            continue
+        visited.add(current)
+        for direction, neighbour in graph[current]:
+            queue.append((path + direction, neighbour))
+        i+=1
+    return None
+
+def careful_exploring_bfs(maze, goal, x, y):
+    global tools
+    queue = deque([("",(x,y))])
+    visited = set()
+    graph = special_maze2graph(maze,goal)
+    i = 0
+
+    while queue:
+        path, current = queue.popleft()
+        if maze[current[0]][current[1]] == goal and i > 0:# and current[0] != x and current[1] != y:
+            path = path[:-1]
+            path += "g"
+            return path
+        if current in visited or (maze[current[0]][current[1]] == water):
+            continue
+        visited.add(current)
+        for direction, neighbour in graph[current]:
+            queue.append((path + direction, neighbour))
+        i+=1
+    return None
+
+def update_map(view):
+    global my_map, sx, sy, shift_y, shift_x, start, start_pos, prev_pos, tools
+
+    x = sx
+    y = sy
+
+    x -= 2
+    y -= 2
+    
+    for i in range(5):
+        for j in range(5):
+            if i == 2 and j == 2 and my_map[i+x][j+y] != water: 
+                my_map[i + x][j + y] = ' '
+                continue
+
+            if my_map[i + x][j + y] == "?" :#or (my_map[i + x][j + y] == door and key in tools) or (my_map[i + x][j + y] == tree and axe in tools): 
+                my_map[i + x][j + y] = view[i][j]
+
+            if view[i][j] == "O":
+                my_map[i + x][j + y] = ' '
+
+    my_map[79][79] = "s"
+
+
+
+def solve_view(maze, startX, startY, goal, mode):
+   
+    if mode == 0:
+        path = bfs(maze, goal, startX, startY)
+        return path
+    elif mode == 1:
+        return exploring_bfs(maze, goal, startX, startY)
+    elif mode == 2:
+        return careful_exploring_bfs(maze, goal, startX, startY)
+
