@@ -31,7 +31,7 @@ import collections
 import random
 import time
 import copy
-#import numpy as np
+import numpy as np
 from collections import deque
 
 
@@ -181,7 +181,7 @@ def bfs(maze, goal, x, y):
         if maze[current[0]][current[1]] == goal and i > 0:# and current[0] != x and current[1] != y:
             path += "g"
             return path
-        if current in visited or (maze[current[0]][current[1]] == water and tree not in tools and stone not in tools) :
+        if current in visited or (maze[current[0]][current[1]] == water and tree not in tools) :
             continue
         visited.add(current)
         for direction, neighbour in graph[current]:
@@ -203,7 +203,7 @@ def exploring_bfs(maze, goal, x, y):
             path = path[:-1]
             path += "g"
             return path
-        if current in visited or (maze[current[0]][current[1]] == water and tree not in tools and stone not in tools):
+        if current in visited or (maze[current[0]][current[1]] == water and tree not in tools):
             continue
         visited.add(current)
         for direction, neighbour in graph[current]:
@@ -262,14 +262,14 @@ def update_map(view):
 
     my_map[79][79] = "s"
 
-    #to_print = np.rot90(my_map,2)
+    to_print = np.rot90(my_map,1)
 
-    """for i in range(160):
+    for i in range(160):
         for j in range(160):
             print(to_print[i][j], end='')
 
         print()
-    """
+
 
 # solve view starts up the recursive solve
 # see r_solve()
