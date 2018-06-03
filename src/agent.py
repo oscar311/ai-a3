@@ -35,6 +35,7 @@ import copy
 from collections import deque
 
 
+
 # keep track of tools
 tools = []
 
@@ -52,10 +53,6 @@ tree, door, water = "T", "-", "~"
 # tools
 key, axe, stone, treasure = "k", "a", "o", "$"
 
-# dimensions 
-width, height = 5,5
-
-
 # previous x and y of player
 shift_x = 0
 shift_y = 0
@@ -72,8 +69,8 @@ up = 6
 down = 7
  #= Queue(maxsize=1000)
 
-sx = 39
-sy = 39
+sx = 79
+sy = 79
 
 pos = "^"
 start_pos = "^"
@@ -89,37 +86,25 @@ rot = 0
 view = [['' for _ in range(5)] for _ in range(5)]
 #my_map = [['' for _ in range(80)] for _ in range(80)]
 
-my_map = [['?' for _ in range(80)] for _ in range(80)]
+my_map = [['?' for _ in range(160)] for _ in range(160)]
 
 
 visited = set()
-def special_maze2graph(maze):
+def special_maze2graph(maze,goal):
     global tools
-    height = 80
-    width = 80
+    height = 160
+    width = 160
     graph = {(i, j): [] for j in range(width) for i in range(height) if not maze[i][j] == wall}
 
-    if key in tools and axe in tools:
-    
+    if key in tools and goal == door:
         for row, col in graph.keys():
-            if row < height - 1 and not maze[row + 1][col] == wall and not maze[row + 1][col] == edge :#and not maze[row + 1][col] == tree and not maze[row + 1][col] == door:
-                graph[(row, col)].append(("D", (row + 1, col)))
-                graph[(row + 1, col)].append(("U", (row, col)))
-            if col < width - 1 and not maze[row][col + 1] == wall and not maze[row][col + 1] == edge :#and not maze[row][col + 1] == tree and not maze[row][col + 1] == door:
-                graph[(row, col)].append(("R", (row, col + 1)))
-                graph[(row, col + 1)].append(("L", (row, col)))
-
-    elif key in tools:
-        for row, col in graph.keys():
-
-
             if row < height - 1 and not maze[row + 1][col] == wall and not maze[row + 1][col] == edge and not maze[row + 1][col] == tree:
                 graph[(row, col)].append(("D", (row + 1, col)))
                 graph[(row + 1, col)].append(("U", (row, col)))
             if col < width - 1 and not maze[row][col + 1] == wall and not maze[row][col + 1] == edge and not maze[row][col + 1] == tree:
                 graph[(row, col)].append(("R", (row, col + 1)))
                 graph[(row, col + 1)].append(("L", (row, col)))
-    elif axe in tools:
+    elif axe in tools and goal == tree:
         for row, col in graph.keys():
             if row < height - 1 and not maze[row + 1][col] == wall and not maze[row + 1][col] == edge and not maze[row + 1][col] == door:
                 graph[(row, col)].append(("D", (row + 1, col)))
@@ -144,23 +129,13 @@ def special_maze2graph(maze):
     return graph
 
 
-def maze2graph(maze):
+def maze2graph(maze, goal):
     global tools
-    height = 80
-    width = 80
+    height = 160
+    width = 160
     graph = {(i, j): [] for j in range(width) for i in range(height) if not maze[i][j] == wall}
 
-    if key in tools and axe in tools:
-    
-        for row, col in graph.keys():
-            if row < height - 1 and not maze[row + 1][col] == wall and not maze[row + 1][col] == edge and not maze[row + 1][col] == "?" :#and not maze[row + 1][col] == tree and not maze[row + 1][col] == door:
-                graph[(row, col)].append(("D", (row + 1, col)))
-                graph[(row + 1, col)].append(("U", (row, col)))
-            if col < width - 1 and not maze[row][col + 1] == wall and not maze[row][col + 1] == edge and not maze[row][col + 1] == "?" :#and not maze[row][col + 1] == tree and not maze[row][col + 1] == door:
-                graph[(row, col)].append(("R", (row, col + 1)))
-                graph[(row, col + 1)].append(("L", (row, col)))
-
-    elif key in tools:
+    if key in tools and goal == door:
         for row, col in graph.keys():
 
 
@@ -170,7 +145,7 @@ def maze2graph(maze):
             if col < width - 1 and not maze[row][col + 1] == wall and not maze[row][col + 1] == edge and not maze[row][col + 1] == "?" and not maze[row][col + 1] == tree:
                 graph[(row, col)].append(("R", (row, col + 1)))
                 graph[(row, col + 1)].append(("L", (row, col)))
-    elif axe in tools:
+    elif axe in tools and goal == tree:
         for row, col in graph.keys():
             if row < height - 1 and not maze[row + 1][col] == wall and not maze[row + 1][col] == edge and not maze[row + 1][col] == "?" and not maze[row + 1][col] == door:
                 graph[(row, col)].append(("D", (row + 1, col)))
@@ -179,7 +154,7 @@ def maze2graph(maze):
                 graph[(row, col)].append(("R", (row, col + 1)))
                 graph[(row, col + 1)].append(("L", (row, col)))
     else :
-        
+           
         for row, col in graph.keys():
             if row < height - 1 and not maze[row + 1][col] == wall and not maze[row + 1][col] == edge and not maze[row + 1][col] == "?" and not maze[row + 1][col] == tree and not maze[row + 1][col] == door:
                 graph[(row, col)].append(("D", (row + 1, col)))
@@ -199,14 +174,14 @@ def bfs(maze, goal, x, y):
     global tools
     queue = deque([("",(x,y))])
     visited = set()
-    graph = maze2graph(maze)
+    graph = maze2graph(maze,goal)
     i = 0
     while queue:
         path, current = queue.popleft()
         if maze[current[0]][current[1]] == goal and i > 0:# and current[0] != x and current[1] != y:
             path += "g"
             return path
-        if current in visited or (maze[current[0]][current[1]] == water and tree not in tools) :
+        if current in visited or (maze[current[0]][current[1]] == water and tree not in tools and stone not in tools) :
             continue
         visited.add(current)
         for direction, neighbour in graph[current]:
@@ -215,11 +190,11 @@ def bfs(maze, goal, x, y):
     return None
 
 
-def global_bfs(maze, goal, x, y):
+def exploring_bfs(maze, goal, x, y):
     global tools
     queue = deque([("",(x,y))])
     visited = set()
-    graph = special_maze2graph(maze)
+    graph = special_maze2graph(maze,goal)
     i = 0
 
     while queue:
@@ -228,7 +203,7 @@ def global_bfs(maze, goal, x, y):
             path = path[:-1]
             path += "g"
             return path
-        if current in visited or (maze[current[0]][current[1]] == water and tree not in tools):
+        if current in visited or (maze[current[0]][current[1]] == water and tree not in tools and stone not in tools):
             continue
         visited.add(current)
         for direction, neighbour in graph[current]:
@@ -237,52 +212,44 @@ def global_bfs(maze, goal, x, y):
     return None
 
 
+def careful_exploring_bfs(maze, goal, x, y):
+    global tools
+    queue = deque([("",(x,y))])
+    visited = set()
+    graph = special_maze2graph(maze,goal)
+    i = 0
+
+    while queue:
+        path, current = queue.popleft()
+        if maze[current[0]][current[1]] == goal and i > 0:# and current[0] != x and current[1] != y:
+            path = path[:-1]
+            path += "g"
+            return path
+        if current in visited or (maze[current[0]][current[1]] == water):
+            continue
+        visited.add(current)
+        for direction, neighbour in graph[current]:
+            queue.append((path + direction, neighbour))
+        i+=1
+    return None
 
 def update_map(view):
 
 
-    #my_map.put(view.copy())
     
-    global my_map, sx, sy, shift_y, shift_x
-    ##print(shift_x)
-    ##print(shift_y)
-    ##print(sx)
-    ##print(sy)
-
+    global my_map, sx, sy, shift_y, shift_x, start, start_pos, prev_pos, tools
 
     
-
-    #print_grid(prev_view)
-    global start, start_pos, prev_pos, tools
-
-    ##print(">>> prev pos " + prev_pos)
-
-
-    #global rot
-
-    """if rot != 0:
-        my_map = np.rot90(my_map,-rot)
-    """
-    
-
-    #rot = 0
-    """for i in prev_pos:
-        if i == "L":
-            view = np.rot90(view,1)
-            #rot+=1
-        elif i == "R":
-            view = np.rot90(view,3)
-            #rot-=1
-    """
-    
-
     x = sx
     y = sy
 
     x -= 2
     y -= 2
+    
     for i in range(5):
         for j in range(5):
+
+
             if i == 2 and j == 2 and my_map[i+x][j+y] != water: 
                 my_map[i + x][j + y] = ' '
                 continue
@@ -290,52 +257,19 @@ def update_map(view):
             if my_map[i + x][j + y] == "?" :#or (my_map[i + x][j + y] == door and key in tools) or (my_map[i + x][j + y] == tree and axe in tools): 
                 my_map[i + x][j + y] = view[i][j]
 
+            if view[i][j] == "O":
+                my_map[i + x][j + y] = ' '
 
-    """
+    my_map[79][79] = "s"
 
-    if shift_x == 0 and shift_y == 0 and start == 1:
+    #to_print = np.rot90(my_map,2)
 
-        for i in range(5):
-            for j in range(5):
-                if my_map[sx+i+shift_x][sy+j+shift_y] == "" or my_map[sx+i+shift_x][sy+i+shift_y] == " ":
-
-                    my_map[sx+i+shift_x][sy+j+shift_y] = view[i][j]
-
-    else:
-        start = 2
-
-        for i in range(5):
-            for j in range(5):
-                if my_map[sx+i+shift_x][sy+i+shift_y] == "" or my_map[sx+i+shift_x][sy+i+shift_y] == " ":
-
-                    my_map[sx+i+shift_x][sy+j+shift_y] = view[i][j]
-
-        sx+=shift_x
-        sy+=shift_y
-    """
-
-    my_map[39][39] = "s"
-    """
-    for i in prev_pos:
-        if i == "L":
-            my_map = np.rot90(my_map,-1)
-            #rot+=1
-        elif i == "R":
-            my_map = np.rot90(my_map,1)
-            #rot-=1
-    """
-    """
-    to_print = np.rot90(my_map,3)
-    for i in range(80) :
-        for j in range(80) :
+    """for i in range(160):
+        for j in range(160):
             print(to_print[i][j], end='')
+
         print()
     """
-
-
-
-
-
 
 # solve view starts up the recursive solve
 # see r_solve()
@@ -353,60 +287,11 @@ def solve_view(maze,startX,startY,goal, mode):
     elif mode == 1:
         # recursively solve the "maze" solving for different goals
         #return r_solve(maze,seen,p,startX,startY,goal, startX, startY)
-        return global_bfs(maze, goal, startX, startY)
-
-# recursive function that solves the maze, given a goal
-#   - maze = given puzzle to solve
-#   - seen = the closed node 2d array
-#   - p = path
-#   - x,y = x start cord, y start cord
-#   - goal = where to end
-#   
-# returns
-#   - x, y = x end cord, y end cord
-#   - False = whether or not the maze was solvable
-#   - p = the path 
-def r_solve(maze,seen,p,x,y,goal):
-    
-    if maze[x][y] == goal: 
-        p += "g"
-        return x,y, True, p
-
-    if maze[x][y] == "?" or maze[x][y] == wall or maze[x][y] == tree or maze[x][y] == water or maze[x][y] == door or seen[x][y]:
-        return x,y, False, p
-
-    seen[x][y] = True
-
-    if x != 0:
-        i,j,t, p = r_solve(maze,seen,p,x-1,y,goal, startX, startY) # // Recalls method one to the right
-        if t :
-            p += "U"; #// Sets that path value to true;
-            ##print(">>>> " + str(x) + " " + str(y) + " <<<<<") 
-        
-            return x,y, t, p
-    if x != 79:
-        i,j,t, p = r_solve(maze,seen,p,x+1,y,goal, startX, startY) # // Recalls method one to the down
-        if t :
-            p += "D"; #// Sets that path value to true;
-            ##print(">>>> " + str(x) + " " + str(y) + " <<<<<") 
-            
-            return x,y, t, p
-    if y != 0:
-        i,j,t, p = r_solve(maze,seen,p,x,y-1,goal, startX, startY) # // Recalls method one to the left
-        if t :
-            p += "L"; #// Sets that path value to true;
-            ##print(">>>> " + str(x) + " " + str(y) + " <<<<<") 
-            
-            return x,y, t, p
-    if y != 79:
-        i,j,t, p = r_solve(maze,seen,p,x,y+1,goal, startX, startY) # // Recalls method one to the right
-        if t :
-            p += "R"; #// Sets that path value to true;
-            ##print(">>>> " + str(x) + " " + str(y) + " <<<<<") 
-            
-            return x,y, t, p
-            
-    return x,y, False, p
+        return exploring_bfs(maze, goal, startX, startY)
+    elif mode == 2:
+        # recursively solve the "maze" solving for different goals
+        #return r_solve(maze,seen,p,startX,startY,goal, startX, startY)
+        return careful_exploring_bfs(maze, goal, startX, startY)
 
 
 
@@ -451,7 +336,7 @@ def get_action(view):
 
     global shift_x, shift_y, tools
 
-    #print(tools)
+    print(tools)
     
 
     #global visited
@@ -462,7 +347,7 @@ def get_action(view):
         #view[xk][yk] = " "
         #tools.append("k")
         path = solve_view(my_map,sx,sy,"k",0)
-        #print(">>>>>>> key")
+        print(">>>>>>> key")
         #visited = set()
         #shift_x = xk - init_x
         #shift_y = yk - init_y
@@ -470,7 +355,7 @@ def get_action(view):
         #view[xd][yd] = " "
         end_move += "UF"
         path = solve_view(my_map,sx,sy,"-",0)
-        #print(">>>>>>> door")
+        print(">>>>>>> door")
         #visited = set()
         #shift_x = xd - init_x
         #shift_y = yd - init_y
@@ -478,7 +363,7 @@ def get_action(view):
         #view[xa][ya] = " "
         #tools.append("a")
         path = solve_view(my_map,sx,sy,"a",0)
-        #print(">>>>>>> axe")
+        print(">>>>>>> axe")
         #visited = set()
         #shift_x = xa - init_x
         #shift_y = ya - init_y
@@ -486,14 +371,14 @@ def get_action(view):
         #view[xt][yt] = " "
         end_move += "CF"
         path = solve_view(my_map,sx,sy,"T",0)
-        #print(">>>>>>> tree")
+        print(">>>>>>> tree")
         #visited = set()
         #shift_x = xt - init_x
         #shift_y = yt - init_y
     elif solve_view(my_map,sx,sy,"o",0) != None:
         #view[xo][yo] = " "
         path = solve_view(my_map,sx,sy,"o",0)
-        #print(">>>>>>> stone")
+        print(">>>>>>> stone")
 
         #visited = set()
         #shift_x = xo - init_x
@@ -502,43 +387,22 @@ def get_action(view):
         #view[xp][yp] = " "
         path = solve_view(my_map,sx,sy,"$",0)
         #tools.append("$")
-        #print(">>>>>>> prise")
+        print(">>>>>>> prise")
         #visited = set()
         #shift_x = xp - init_x
         #shift_y = yp - init_y  
+    
+    elif solve_view(my_map,sx,sy,"?",2) != None:
+        print(">>>>>>> careful")
+
+        path = solve_view(my_map,sx,sy,"?",2)
     else:   
+        print(">>>>>>> default  ")
         
         path = solve_view(my_map,sx,sy,"?",1)        
 
 
-        #print(">>>>>>>>>>>>>>>> basic")
-        """path = ""
-
-        i = sx
-        j = sy
         
-
-        while i != 0 and i != 79 and j != 0 and j != 79:
-
-            s = random.choice(["U","D","L","R"])
-
-            if s == "D" and my_map[i+1][j] != "?" and my_map[i+1][j] != wall and my_map[i+1][j] != water:
-                path += "D"
-                i+=1
-            elif s == "U" and my_map[i-1][j] != "?" and my_map[i-1][j] != wall and my_map[i-1][j] != water:
-                path += "U"
-                i-=1
-            elif s == "L" and my_map[i][j-1] != "?" and my_map[i][j-1] != wall and my_map[i][j-1] != water :
-                path += "L"
-                j-=1
-            elif s == "R" and my_map[i][j+1] != "?" and my_map[i][j+1] != wall and my_map[i][j+1] != water:
-                path += "R"
-                j+=1
-            else :
-                break
-
-        path += "g"
-        """
     global start_pos
 
     ret = ""
@@ -586,6 +450,8 @@ def get_action(view):
 
             pos = "^"
             break
+
+
 
 
         if p == "g" :
@@ -776,6 +642,6 @@ if __name__ == "__main__":
 
             sock.send(action.encode('utf-8'))
 
-            time.sleep(0.5)
+            time.sleep(0.1)
 
     sock.close()
