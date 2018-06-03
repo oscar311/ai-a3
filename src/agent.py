@@ -13,17 +13,18 @@
 
 # === DESIGN ===
 
-# The data structure used to keep track of all the known parts of the map is a 160 x 160 2D array. This size is to accommodate an 80 x 80 map which starts the agent in the corner.
-# In our data structure the agent starts in the middle so whichever way the map grows it will never go past the edge of the array.
+# The data structure used to keep track of all the known parts of the map is a 160 x 160 2D array. 
+# This size is to accommodate an 80 x 80 map which starts the agent in the corner.
+# In our data structure the agent starts in the middle so whichever way the map grows it will 
+# never go past the edge of the array.
 
 # Each time a new map segment is received, the map data structure is updated with the new information.
 # A Breadth first search is then performed on all of the objects
 
-# If a path to the treasure cannot be found, the agent is insutructed to move around and discover more of the map.
+# If a path to the treasure/key/axe/stone/tree/door cannot be found, the agent is 
+# instructed to move around and discover more of the map.
 
 # This is repeated until a path can be found to the treasure and all the tools required.
-
-# Finally a path is constructed to aquire all the tools necessary and to the treasure then back to the start.
 
 import sys
 import socket
@@ -245,26 +246,22 @@ def update_map(view):
         print()
 
 
-# solve view starts up the recursive solve
-# see r_solve()
 def solve_view(maze, startX, startY, goal, mode):
-    # init path array
-    p = ""
-
+   
     if mode == 0:
         path = bfs(maze, goal, startX, startY)
         return path
     elif mode == 1:
-        # recursively solve the "maze" solving for different goals
-        #return r_solve(maze,seen,p,startX,startY,goal, startX, startY)
         return exploring_bfs(maze, goal, startX, startY)
     elif mode == 2:
-        # recursively solve the "maze" solving for different goals
-        #return r_solve(maze,seen,p,startX,startY,goal, startX, startY)
         return careful_exploring_bfs(maze, goal, startX, startY)
 
 # function to take get action from AI or user
 def get_action(view):
+
+    # update map
+    update_map(view)
+
     global pos, prev_pos
 
     # start cords
@@ -274,8 +271,8 @@ def get_action(view):
     # which direction the player is facing
     pos = view[init_x][init_y]
 
-    # update the map
-
+    # solve the map we have constructed from the various 5x5 grid
+    
     # solve the given 5x5 grid giving the various tools
     # as the goals, working out way up in the list of most 
     # valuable or whichever is found first
@@ -502,7 +499,7 @@ if __name__ == "__main__":
             #print("~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
             #print_grid(view) # COMMENT THIS OUT ON SUBMISSION
             
-            update_map(view)            
+                        
             action = get_action(view) # gets new actions
 
             #print(">>>>>>>>>>>"+action)
